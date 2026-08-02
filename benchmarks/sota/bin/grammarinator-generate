@@ -38,7 +38,9 @@ def main() -> int:
         args[index + 1] = str(max(int(args[index + 1]), 100_000))
 
     with tempfile.TemporaryDirectory(prefix="pdrs-grammarinator-") as directory:
-        pattern = str(Path(directory) / "case_%06d.txt")
+        # Grammarinator 26.1 recognizes the literal `%d` placeholder. Width
+        # modifiers such as `%06d` are treated as ordinary text and overwrite.
+        pattern = str(Path(directory) / "case_%d.txt")
         completed = subprocess.run(
             [executable, *args, "-o", pattern, "-j", "1"],
             stdout=subprocess.DEVNULL,
@@ -48,7 +50,10 @@ def main() -> int:
         if completed.returncode != 0:
             sys.stderr.write(completed.stderr)
             return completed.returncode
-        paths = sorted(Path(directory).glob("case_*.txt"))
+        paths = sorted(
+            Path(directory).glob("case_*.txt"),
+            key=lambda path: int(path.stem.split("_", 1)[1]),
+        )
         if not paths:
             sys.stderr.write(
                 "Grammarinator completed successfully but produced no output files.\n"
