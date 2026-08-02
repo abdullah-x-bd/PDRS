@@ -6,6 +6,11 @@ on:
     paths:
       - ".bootstrap/**"
       - ".github/workflows/materialize.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".bootstrap/**"
+      - ".github/workflows/materialize.yml"
   workflow_dispatch:
 
 permissions:
@@ -15,9 +20,12 @@ jobs:
   materialize:
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    env:
+      TARGET_BRANCH: ${{ github.head_ref || github.ref_name }}
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
@@ -47,4 +55,4 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           git commit -m "Materialize complete PDRS evidence suite"
-          git push origin HEAD:${GITHUB_REF_NAME}
+          git push origin HEAD:${TARGET_BRANCH}
