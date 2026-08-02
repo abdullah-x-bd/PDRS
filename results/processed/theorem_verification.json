@@ -1,0 +1,8 @@
+{
+  "schema_class": "finite acyclic choice/range/terminal trees",
+  "independent_enumerator": true,
+  "schemas_checked": 1000,
+  "objects_checked": 65708,
+  "failures": 0,
+  "note": "Executable exhaustive model checking complements, but does not replace, the general inductive proof in theory/proofs.md."
+}

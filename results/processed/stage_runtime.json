@@ -1,0 +1,7 @@
+{
+  "operation_count_per_schema": 6000,
+  "static_schemas": 7,
+  "scaling_points": 17,
+  "median_rank_us": 1.2148961666666667,
+  "median_unrank_us": 1.292794
+}

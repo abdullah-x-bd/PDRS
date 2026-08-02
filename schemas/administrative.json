@@ -1,0 +1,141 @@
+{
+  "name": "administrative-service-code",
+  "version": "1",
+  "root": "country",
+  "nodes": {
+    "country": {
+      "type": "choice",
+      "field": "country",
+      "branches": [
+        {
+          "value": "india",
+          "target": "india_state"
+        },
+        {
+          "value": "belgium",
+          "target": "belgium_region"
+        },
+        {
+          "value": "uae",
+          "target": "uae_emirate"
+        },
+        {
+          "value": "singapore",
+          "target": "singapore_district"
+        },
+        {
+          "value": "brazil",
+          "target": "brazil_state"
+        }
+      ]
+    },
+    "india_state": {
+      "type": "range",
+      "field": "state",
+      "start": 0,
+      "stop": 35,
+      "target": "india_district"
+    },
+    "india_district": {
+      "type": "range",
+      "field": "district",
+      "start": 0,
+      "stop": 49,
+      "target": "india_office"
+    },
+    "india_office": {
+      "type": "range",
+      "field": "office",
+      "start": 0,
+      "stop": 7,
+      "target": "end"
+    },
+    "belgium_region": {
+      "type": "range",
+      "field": "region",
+      "start": 0,
+      "stop": 2,
+      "target": "belgium_province"
+    },
+    "belgium_province": {
+      "type": "range",
+      "field": "province",
+      "start": 0,
+      "stop": 9,
+      "target": "belgium_commune"
+    },
+    "belgium_commune": {
+      "type": "range",
+      "field": "commune",
+      "start": 0,
+      "stop": 19,
+      "target": "end"
+    },
+    "uae_emirate": {
+      "type": "range",
+      "field": "emirate",
+      "start": 0,
+      "stop": 6,
+      "target": "uae_authority"
+    },
+    "uae_authority": {
+      "type": "range",
+      "field": "authority",
+      "start": 0,
+      "stop": 11,
+      "target": "uae_service"
+    },
+    "uae_service": {
+      "type": "range",
+      "field": "service",
+      "start": 0,
+      "stop": 31,
+      "target": "end"
+    },
+    "singapore_district": {
+      "type": "range",
+      "field": "district",
+      "start": 0,
+      "stop": 4,
+      "target": "singapore_agency"
+    },
+    "singapore_agency": {
+      "type": "range",
+      "field": "agency",
+      "start": 0,
+      "stop": 15,
+      "target": "singapore_service"
+    },
+    "singapore_service": {
+      "type": "range",
+      "field": "service",
+      "start": 0,
+      "stop": 15,
+      "target": "end"
+    },
+    "brazil_state": {
+      "type": "range",
+      "field": "state",
+      "start": 0,
+      "stop": 26,
+      "target": "brazil_municipality"
+    },
+    "brazil_municipality": {
+      "type": "range",
+      "field": "municipality_bucket",
+      "start": 0,
+      "stop": 99,
+      "target": "brazil_service"
+    },
+    "brazil_service": {
+      "type": "range",
+      "field": "service",
+      "start": 0,
+      "stop": 7,
+      "target": "end"
+    },
+    "end": {
+      "type": "terminal"
+    }
+  }
+}

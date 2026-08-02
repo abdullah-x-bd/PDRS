@@ -1,0 +1,9 @@
+schema,domain,objects_checked,unique_ranks,roundtrip_failures,mode
+administrative,40568,40568,40568,0,exhaustive
+ai_actions,77,77,77,0,exhaustive
+calendar,731,731,731,0,exhaustive
+compiler_ast,134026,134026,134026,0,exhaustive
+fuzz_target,9911,9911,9911,0,exhaustive
+permit,4000,4000,4000,0,exhaustive
+telecom,5564,5564,5564,0,exhaustive
+generated_random_trees,varied,59732,59732,0,1000_schemas_exhaustive

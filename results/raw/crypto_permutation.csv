@@ -1,0 +1,5 @@
+schema,domain,checked,exhaustive,permutation_failures,unique_cipher_ranks,mean_cycle_walk_iterations,max_cycle_walk_iterations,tamper_detection_fraction
+permit,4000,4000,True,0,4000,1.024,3,1.0
+telecom,5564,5564,True,0,5564,2.94392523364486,25,1.0
+fuzz_target,9911,9911,True,0,9911,1.6530118050650793,11,1.0
+administrative,40568,10000,False,0,10000,1.6318,11,1.0

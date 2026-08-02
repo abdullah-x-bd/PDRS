@@ -1,0 +1,5 @@
+case,rejected,elapsed_ms,message
+node_limit,True,2.010593,"schema has 1093 nodes, exceeding limit 100"
+depth_limit,True,1.274081,schema depth 51 exceeds limit 50
+domain_bit_limit,True,2.196993,"node 'choice_50' domain requires 101 bits, exceeding limit 100"
+range_limit,True,0.028063,range node 'r' width 1000001 exceeds limit 1000

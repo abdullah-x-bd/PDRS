@@ -1,0 +1,99 @@
+{
+  "name": "fuzz-target-domain",
+  "version": "1",
+  "root": "family",
+  "nodes": {
+    "family": {
+      "type": "choice",
+      "field": "family",
+      "branches": [
+        {
+          "value": "common",
+          "target": "common_category"
+        },
+        {
+          "value": "medium",
+          "target": "medium_category"
+        },
+        {
+          "value": "rare",
+          "target": "rare_subtype"
+        },
+        {
+          "value": "singleton",
+          "target": "end"
+        }
+      ]
+    },
+    "common_category": {
+      "type": "range",
+      "field": "category",
+      "start": 0,
+      "stop": 7,
+      "target": "common_id"
+    },
+    "common_id": {
+      "type": "range",
+      "field": "id",
+      "start": 0,
+      "stop": 999,
+      "target": "end"
+    },
+    "medium_category": {
+      "type": "range",
+      "field": "category",
+      "start": 0,
+      "stop": 3,
+      "target": "medium_id"
+    },
+    "medium_id": {
+      "type": "range",
+      "field": "id",
+      "start": 0,
+      "stop": 199,
+      "target": "end"
+    },
+    "rare_subtype": {
+      "type": "choice",
+      "field": "subtype",
+      "branches": [
+        {
+          "value": "tiny",
+          "target": "rare_tiny"
+        },
+        {
+          "value": "small",
+          "target": "rare_small"
+        },
+        {
+          "value": "large",
+          "target": "rare_large"
+        }
+      ]
+    },
+    "rare_tiny": {
+      "type": "range",
+      "field": "id",
+      "start": 0,
+      "stop": 9,
+      "target": "end"
+    },
+    "rare_small": {
+      "type": "range",
+      "field": "id",
+      "start": 0,
+      "stop": 99,
+      "target": "end"
+    },
+    "rare_large": {
+      "type": "range",
+      "field": "id",
+      "start": 0,
+      "stop": 999,
+      "target": "end"
+    },
+    "end": {
+      "type": "terminal"
+    }
+  }
+}

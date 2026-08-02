@@ -1,0 +1,7 @@
+mutation,base_domain,new_domain,common_objects,moved_objects,churn_fraction,mean_absolute_displacement,max_absolute_displacement,median_displacement
+append_root_branch,4000,4050,4000,0,0.0,0,0,0.0
+insert_root_branch_first,4000,4050,4000,4000,1.0,50,50,50.0
+reverse_root_order,4000,4000,4000,4000,1.0,1680,3200,-400.0
+expand_first_branch_range,4000,4600,4000,3900,0.975,502.5,600,600.0
+expand_last_branch_range,4000,4800,4000,760,0.19,76,760,0.0
+remove_last_branch,4000,3200,3200,0,0.0,0,0,0.0

@@ -1,0 +1,8 @@
+{
+  "schemas": 4,
+  "permutation_failures": 0,
+  "minimum_tamper_detection": 1.0,
+  "mean_avalanche_fraction": 0.4781412830290327,
+  "mean_tweak_fraction": 0.48187506839398303,
+  "deployment_ready": false
+}
