@@ -40,6 +40,41 @@ jobs:
           test -f native/c/pdrs_native.c
           test -f native/rust/src/main.rs
           test -f scripts/native_evidence.py
+      - name: Remove non-operational Rust metadata fields
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("native/rust/src/main.rs")
+          source = path.read_text(encoding="utf-8")
+          replacements = {
+              '''enum Node {
+              Terminal { name: String },
+              Choice { name: String, field: String, branches: Vec<(String, usize)> },
+              Range { name: String, field: String, start: i64, stop: i64, target: usize },
+          }''': '''enum Node {
+              Terminal,
+              Choice { branches: Vec<(String, usize)> },
+              Range { start: i64, stop: i64, target: usize },
+          }''',
+              '    version: String,\n': '',
+              '    let version = version.ok_or_else(|| "missing schema version".to_string())?;': '    let _version = version.ok_or_else(|| "missing schema version".to_string())?;',
+              '            RawNode::Terminal { name } => Node::Terminal { name },': '            RawNode::Terminal { .. } => Node::Terminal,',
+              '            RawNode::Choice { name, field, branches } => {': '            RawNode::Choice { branches, .. } => {',
+              '                Node::Choice { name, field, branches: resolved }': '                Node::Choice { branches: resolved }',
+              '            RawNode::Range { name, field, start, stop, target } => {': '            RawNode::Range { start, stop, target, .. } => {',
+              '                Node::Range { name, field, start, stop, target }': '                Node::Range { start, stop, target }',
+              '    Ok(Schema { name, version, root, nodes, counts, max_depth })': '    Ok(Schema { name, root, nodes, counts, max_depth })',
+              'Node::Terminal { .. }': 'Node::Terminal',
+              'Node::Choice { branches, .. }': 'Node::Choice { branches }',
+              'Node::Range { start, stop, target, .. }': 'Node::Range { start, stop, target }',
+          }
+          for old, new in replacements.items():
+              if old not in source:
+                  raise SystemExit(f"expected Rust source fragment missing: {old!r}")
+              source = source.replace(old, new)
+          path.write_text(source, encoding="utf-8")
+          PY
+          cargo fmt --manifest-path native/rust/Cargo.toml -- --check || cargo fmt --manifest-path native/rust/Cargo.toml
       - name: Install experiment dependencies
         run: python -m pip install -r requirements-experiments.txt
       - name: Generate canonical native IR
