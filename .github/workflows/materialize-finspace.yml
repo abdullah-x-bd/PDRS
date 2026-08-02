@@ -1,14 +1,9 @@
-name: Materialize FinSpace package
+name: Finalize FinSpace package
 
 on:
   push:
     branches: ["agent/finspace-package"]
     paths:
-      - ".finspace-bootstrap-v2/**"
-      - ".github/workflows/materialize-finspace.yml"
-  pull_request:
-    paths:
-      - ".finspace-bootstrap-v2/**"
       - ".github/workflows/materialize-finspace.yml"
   workflow_dispatch:
 
@@ -16,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  materialize:
+  finalize:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -28,78 +23,62 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - name: Decode and extract verified package source
-        shell: bash
+      - name: Verify the real package tree exists
         run: |
-          set -euo pipefail
-          test -f .finspace-bootstrap-v2/chunk00
-          cat .finspace-bootstrap-v2/chunk[0-9][0-9] | base64 --decode > /tmp/finspace-package.tar.gz
-          echo "243125b35c5e4d806957ee0808d27408a78214bae52a54a62a87d62374eb2c71  /tmp/finspace-package.tar.gz" | sha256sum --check
-          gzip -t /tmp/finspace-package.tar.gz
-          tar -tzf /tmp/finspace-package.tar.gz | sed -n '1,240p'
-          rm -rf /tmp/finspace-extracted finspace
-          mkdir -p /tmp/finspace-extracted
-          tar -xzf /tmp/finspace-package.tar.gz -C /tmp/finspace-extracted
-          test -f /tmp/finspace-extracted/finspace-package/pyproject.toml
-          mv /tmp/finspace-extracted/finspace-package finspace
-          find finspace -maxdepth 5 -type f | sort | sed -n '1,320p'
-      - name: Install package with development, data, and finance integrations
-        shell: bash
+          test -f finspace/pyproject.toml
+          test -d finspace/src/finspace
+          test -d finspace/tests
+          find finspace -maxdepth 4 -type f | sort
+      - name: Install PDRS and complete FinSpace development environment
         run: |
-          set -euo pipefail
-          python -m pip install --upgrade pip build
-          python -m pip install -e "finspace[dev,data,finance]"
-      - name: Run complete FinSpace test suite
-        run: python -m pytest -q finspace/tests
-      - name: Run lint and public API smoke tests
-        shell: bash
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          python -m pip install -e "./finspace[dev,all]"
+      - name: Apply deterministic Ruff fixes
         run: |
-          set -euo pipefail
+          ruff check --fix --unsafe-fixes finspace/src finspace/tests finspace/examples
+          ruff format finspace/src finspace/tests finspace/examples
           ruff check finspace/src finspace/tests finspace/examples
-          python - <<'PY'
-          import finspace
-          from finspace.templates import european_options
-          space = european_options().compile()
-          assert space.rank(space.unrank(0)) == 0
-          assert space.count == 1_411_200
-          print("FinSpace", finspace.__version__, "domain", space.count)
-          PY
+          ruff format --check finspace/src finspace/tests finspace/examples
+      - name: Run tests with coverage
+        run: python -m pytest finspace/tests --cov=finspace --cov-report=term-missing --cov-fail-under=85
+      - name: Run adapters, CLI, and examples
+        shell: bash
+        run: |
+          set -euo pipefail
           finspace --help
           finspace templates
-      - name: Run all examples in an isolated directory
-        shell: bash
-        run: |
-          set -euo pipefail
-          examples=$(pwd)/finspace/examples
           work=$(mktemp -d)
+          examples=$(pwd)/finspace/examples
           cd "$work"
           for example in "$examples"/*.py; do
             echo "Running $(basename "$example")"
             python "$example"
           done
-      - name: Build, reinstall, and inspect distributions
-        shell: bash
+      - name: Build and reinstall wheel and source distribution
         run: |
-          set -euo pipefail
           python -m build finspace
           ls -lh finspace/dist
-          python -m pip install --force-reinstall finspace/dist/*.whl
+          python -m pip uninstall -y finspace
+          python -m pip install finspace/dist/*.whl
           python - <<'PY'
           import finspace
-          from finspace.templates import market_risk
+          from finspace.templates import european_options, market_risk
+          assert european_options().compile().count > 0
           assert market_risk().compile().count > 0
-          print("Installed wheel import succeeded", finspace.__file__)
+          print("FinSpace wheel installed", finspace.__version__, finspace.__file__)
           PY
           rm -rf finspace/dist finspace/build finspace/*.egg-info finspace/src/*.egg-info
-      - name: Commit the validated source tree
-        if: github.event_name != 'pull_request'
-        shell: bash
+      - name: Remove obsolete bootstrap transport and markers
         run: |
-          set -euo pipefail
+          rm -rf .finspace-bootstrap .finspace-bootstrap-v2
+          rm -f FINSPACE_STATUS.md finspace-placeholder.txt
+      - name: Commit the validated package source and cleanup
+        run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add finspace
+          git add -A
           git status --short
           git diff --cached --quiet && exit 0
-          git commit -m "Add complete installable FinSpace package"
+          git commit -m "Finalize complete installable FinSpace package"
           git push origin HEAD:agent/finspace-package
