@@ -4,6 +4,7 @@
 
 module Main where
 
+import Control.Exception (evaluate)
 import Control.Monad.Identity (Identity)
 import qualified Data.Set as Set
 import System.CPUTime (getCPUTime)
@@ -24,18 +25,40 @@ data E16 = E160 | E161 | E162 | E163 | E164 | E165 | E166 | E167
          | E168 | E169 | E1610 | E1611 | E1612 | E1613 | E1614 | E1615
          deriving (Eq, Ord, Show, Enum, Bounded)
 
-instance Enumerable E2 where enumerate = F.datatype [F.c0 E20, F.c0 E21]
-instance Enumerable E4 where enumerate = F.datatype [F.c0 E40, F.c0 E41, F.c0 E42, F.c0 E43]
-instance Enumerable E8 where enumerate = F.datatype [F.c0 E80, F.c0 E81, F.c0 E82, F.c0 E83, F.c0 E84, F.c0 E85, F.c0 E86, F.c0 E87]
-instance Enumerable E16 where enumerate = F.datatype
-  [F.c0 E160, F.c0 E161, F.c0 E162, F.c0 E163, F.c0 E164, F.c0 E165, F.c0 E166, F.c0 E167,
-   F.c0 E168, F.c0 E169, F.c0 E1610, F.c0 E1611, F.c0 E1612, F.c0 E1613, F.c0 E1614, F.c0 E1615]
+instance Enumerable E2 where
+  enumerate = F.datatype [F.c0 E20, F.c0 E21]
 
-instance Monad m => Serial m E2 where series = S.cons0 E20 S.\/ S.cons0 E21
-instance Monad m => Serial m E4 where series = foldr1 (S.\/) (map S.cons0 [E40, E41, E42, E43])
-instance Monad m => Serial m E8 where series = foldr1 (S.\/) (map S.cons0 [E80, E81, E82, E83, E84, E85, E86, E87])
-instance Monad m => Serial m E16 where series = foldr1 (S.\/) (map S.cons0
-  [E160, E161, E162, E163, E164, E165, E166, E167, E168, E169, E1610, E1611, E1612, E1613, E1614, E1615])
+instance Enumerable E4 where
+  enumerate = F.datatype [F.c0 E40, F.c0 E41, F.c0 E42, F.c0 E43]
+
+instance Enumerable E8 where
+  enumerate = F.datatype
+    [ F.c0 E80, F.c0 E81, F.c0 E82, F.c0 E83
+    , F.c0 E84, F.c0 E85, F.c0 E86, F.c0 E87
+    ]
+
+instance Enumerable E16 where
+  enumerate = F.datatype
+    [ F.c0 E160, F.c0 E161, F.c0 E162, F.c0 E163
+    , F.c0 E164, F.c0 E165, F.c0 E166, F.c0 E167
+    , F.c0 E168, F.c0 E169, F.c0 E1610, F.c0 E1611
+    , F.c0 E1612, F.c0 E1613, F.c0 E1614, F.c0 E1615
+    ]
+
+instance Monad m => Serial m E2 where
+  series = S.cons0 E20 S.\/ S.cons0 E21
+
+instance Monad m => Serial m E4 where
+  series = foldr1 (S.\/) (map S.cons0 [E40, E41, E42, E43])
+
+instance Monad m => Serial m E8 where
+  series = foldr1 (S.\/) (map S.cons0 [E80, E81, E82, E83, E84, E85, E86, E87])
+
+instance Monad m => Serial m E16 where
+  series = foldr1 (S.\/) (map S.cons0
+    [ E160, E161, E162, E163, E164, E165, E166, E167
+    , E168, E169, E1610, E1611, E1612, E1613, E1614, E1615
+    ])
 
 data Balanced = Balanced E8 E8 E8 deriving (Eq, Ord, Show)
 data Imbalanced = ISmall E2 | IMedium E4 E4 | ILarge E16 E16 | IHuge E16 E16 E8 deriving (Eq, Ord, Show)
@@ -102,6 +125,12 @@ dedup = go Set.empty where
     | Set.member x seen = go seen xs
     | otherwise = x : go (Set.insert x seen) xs
 
+forceInts :: [Int] -> IO [Int]
+forceInts values = do
+  _ <- evaluate (length values)
+  _ <- evaluate (sum values)
+  pure values
+
 writeRanks :: FilePath -> String -> Integer -> [Int] -> IO ()
 writeRanks out method elapsed ranks = writeFile out $
   "#method=" ++ method ++ "\n" ++
@@ -112,19 +141,19 @@ runOne :: (Enumerable a, Serial Identity a, Ord a) => FilePath -> String -> Int 
 runOne out name count ranker = do
   (featRanks, featTime) <- timed $ do
     let values = [F.index (toInteger i) | i <- [0 .. count - 1]]
-    pure $ map ranker values
-  let smallValues = S.listSeries 20
-  (smallRanks, smallTime) <- timed $ pure $ map ranker smallValues
-  let smallUnique = dedup smallRanks
+    forceInts (map ranker values)
+  (smallRanks, smallTime) <- timed $ do
+    let values = S.listSeries 20
+    forceInts (dedup (map ranker values))
   if Set.fromList featRanks /= Set.fromList [0 .. count - 1]
     then error ("Feat did not cover " ++ name)
     else pure ()
-  if Set.fromList smallUnique /= Set.fromList [0 .. count - 1]
-    then error ("SmallCheck did not cover " ++ name ++ ", got " ++ show (length smallUnique))
+  if Set.fromList smallRanks /= Set.fromList [0 .. count - 1]
+    then error ("SmallCheck did not cover " ++ name ++ ", got " ++ show (length smallRanks))
     else pure ()
   writeRanks (out </> ("feat_" ++ name ++ ".txt")) "feat" featTime featRanks
-  writeRanks (out </> ("smallcheck_" ++ name ++ ".txt")) "smallcheck" smallTime smallUnique
-  printf "%s feat=%d smallcheck=%d\n" name (length featRanks) (length smallUnique)
+  writeRanks (out </> ("smallcheck_" ++ name ++ ".txt")) "smallcheck" smallTime smallRanks
+  printf "%s feat=%d smallcheck=%d\n" name (length featRanks) (length smallRanks)
 
 main :: IO ()
 main = do
