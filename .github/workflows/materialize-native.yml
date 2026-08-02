@@ -72,9 +72,24 @@ jobs:
               if old not in source:
                   raise SystemExit(f"expected Rust source fragment missing: {old!r}")
               source = source.replace(old, new)
+          # The generic Node rewrites also occur as substrings inside RawNode.
+          # Restore the three RawNode patterns explicitly.
+          source = source.replace(
+              'RawNode::Terminal => Node::Terminal,',
+              'RawNode::Terminal { .. } => Node::Terminal,',
+          )
+          source = source.replace(
+              'RawNode::Choice { branches } => {',
+              'RawNode::Choice { branches, .. } => {',
+          )
+          source = source.replace(
+              'RawNode::Range { start, stop, target } => {',
+              'RawNode::Range { start, stop, target, .. } => {',
+          )
           path.write_text(source, encoding="utf-8")
           PY
-          cargo fmt --manifest-path native/rust/Cargo.toml -- --check || cargo fmt --manifest-path native/rust/Cargo.toml
+          cargo fmt --manifest-path native/rust/Cargo.toml
+          cargo fmt --manifest-path native/rust/Cargo.toml -- --check
       - name: Install experiment dependencies
         run: python -m pip install -r requirements-experiments.txt
       - name: Generate canonical native IR
