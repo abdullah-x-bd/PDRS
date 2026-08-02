@@ -14,10 +14,14 @@ permissions:
   actions: read
   contents: read
 
+concurrency:
+  group: sota-assembly-recovery-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   assemble:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -25,28 +29,11 @@ jobs:
         with:
           python-version: "3.12"
 
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "21"
-
-      - uses: haskell-actions/setup@v2
-        with:
-          ghc-version: "9.8.4"
-          cabal-version: "3.12.1.0"
-
       - name: Install evidence dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e .
           python -m pip install -r requirements-experiments.txt
-          python -m pip install -r requirements-sota.txt
-
-      - name: Install pinned Haskell comparison packages
-        working-directory: benchmarks/sota/haskell
-        run: |
-          cabal update
-          cabal build --only-dependencies
 
       - uses: actions/download-artifact@v4
         with:
