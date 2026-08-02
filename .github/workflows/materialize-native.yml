@@ -117,6 +117,7 @@ jobs:
       - name: Commit materialized native evidence
         run: |
           rm -rf .native_bootstrap .github/workflows/materialize-native.yml
+          rm -f .github/workflows/native.yml
           rm -f native/c/pdrs-c native/c/pdrs-c-sanitize
           rm -rf native/rust/target
           git config user.name "github-actions[bot]"
