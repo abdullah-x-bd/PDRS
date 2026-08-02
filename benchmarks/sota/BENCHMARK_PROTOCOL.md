@@ -16,13 +16,17 @@ PDRS is evaluated as the focal sixth system.
 
 Five finite domains are represented without rejection-only semantic predicates:
 
-- balanced three-field product
-- strongly imbalanced tagged choice
-- dependent record
-- protocol message
-- state-dependent action space
+| Domain | Valid objects | Structure |
+|---|---:|---|
+| Balanced product | 2,048 | Three independent bounded fields |
+| Imbalanced choice | 2,322 | Four alternatives ranging from 2 to 2,048 objects |
+| Dependent record | 6,288 | Four alternatives with different field counts and radices |
+| Protocol message | 1,112 | Type-dependent control-message fields |
+| Action space | 2,496 | Action-dependent parameter spaces |
 
-Every generated object is converted to a shared canonical integer identifier. All validity, uniqueness, coverage, bug, and overlap statistics are therefore calculated outside the compared tools.
+Every domain contains more than 1,000 valid objects. Therefore the 100, 500, and 1,000-case conditions are distinct in every domain.
+
+Every generated object is converted to a shared canonical integer identifier. All validity, uniqueness, coverage, bug, and overlap statistics are calculated outside the compared tools.
 
 ## Fairness rules
 
@@ -30,23 +34,31 @@ Every generated object is converted to a shared canonical integer identifier. Al
 - SmallCheck receives its native exhaustive order rather than being converted into a random generator.
 - Hypothesis uses declarative `one_of` and integer strategies with generation enabled and shrinking disabled during measurement.
 - Grammarinator uses a generated ANTLR grammar plus its public memoization facility to reduce duplicates.
-- CombOL uses a finite sum/product specification whose branches are padded to equal combinatorial size, making the target structures equiprobable under equal atom parameters.
+- CombOL uses a finite sum/product specification whose alternatives are padded to equal combinatorial size. Every actual atom receives unit weight and the reserved neutral atom retains its implicit unit weight, making complete finite objects equiprobable.
 - PDRS uses rank sampling without replacement.
-- Compilation/setup costs are retained separately from campaign-quality metrics.
 - Exact-enumeration metrics are reported only for methods exposing that capability.
-- No unsupported capability is imputed as a failure score.
+- Unsupported capabilities are recorded in the capability matrix rather than converted into artificial zero scores.
+- Steady-state generation time excludes language and package installation. Generator/schema preparation is separated from campaign-quality measurements.
 
 ## Workloads
 
-- Budgets: 100, 500, and 1,000, capped by domain cardinality.
+- Budgets: 100, 500, and 1,000.
 - Repetitions: 20.
+- Methods: 6.
+- Domains: 5.
+- Reported matched rows: 1,800.
+- Each method-domain job performs 20 maximum-budget campaigns. The 100 and 500-case measurements are exact prefixes of the same campaign used for the 1,000-case result. This preserves paired comparison while avoiding redundant tool initialization.
 - Bug distributions:
   - uniformly placed
   - rare-branch
   - field and branch boundaries
   - clustered interval
   - cross-field interaction
-- Four-worker overlap is measured using coordinated partitions where a method supports them and independent seeded runs otherwise.
+- Four-worker overlap is measured using coordinated partitions where a method supports them and independent seeded campaigns otherwise.
+
+## Execution isolation
+
+The workflow runs a 30-cell matrix containing every method-domain combination. A failed or slow external system cannot invalidate completed chunks from other systems. The aggregate stage requires all 30 chunks before producing any accepted evidence.
 
 ## Outputs
 
@@ -56,6 +68,7 @@ Every generated object is converted to a shared canonical integer identifier. Al
 - `results/sota/raw/worker_overlap.csv`
 - `results/sota/processed/summary.json`
 - `results/sota/processed/capabilities.csv`
+- `results/sota/processed/chunk_audit.csv`
 - generated SVG and PNG figures
 - package and runtime metadata
 - SHA-256 manifest
