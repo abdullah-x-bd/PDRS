@@ -8,14 +8,14 @@ This report covers proofs, implementation validation, experiments, data, graphs,
 
 1. **Correctness:** 254,609 objects were checked across seven static schemas and 1,000 generated schemas. No count, rank, unrank, ordering, or inverse failure occurred.
 2. **Density:** PDRS achieved the information-theoretic fixed-width bound on every schema. The median saving was 1 bit per object against the UPER subset and 41 bits per object against the generic protobuf wire baseline.
-3. **Performance:** Across the static corpus, median rank latency was 1.325 microseconds and median unrank latency was 1.417 microseconds in the recorded Python environment.
+3. **Performance:** Across the static corpus, median rank latency was 1.215 microseconds and median unrank latency was 1.293 microseconds in the recorded GitHub runner environment.
 4. **Uniformity:** Five schemas received 150,000 samples each. The maximum total variation across 100 exact-cardinality rank buckets was 0.0106 and the minimum chi-square p-value was 0.178.
 5. **Fuzzing:** At 3,500 attempts, PDRS produced exactly 3,500 unique valid objects in every repetition. Direct grammar produced a median 1,720, mutation 777.5, and naive rejection 334.5. PDRS found a median 22 of 64 seeded bugs, compared with 8 for direct grammar and 2 for mutation and naive rejection.
 6. **Parallel work:** Exact rank partitioning had zero overlap. Four independent grammar workers had median overlap of 15.4 percent.
 7. **Evolution:** Appending a branch preserved every existing rank. Inserting a branch first or reversing root order changed every existing rank. Expanding an early branch changed 97.5 percent.
 8. **Faults:** A median 92.8 percent of raw dense-rank single-bit flips decoded to another valid object. Dense ranks therefore need an integrity layer. A checksum or MAC detects all single-bit alterations in the tested model.
 9. **Resource controls:** All four configured resource-exhaustion attacks were rejected quickly.
-10. **Timing:** The Python reference implementation is not constant time. Branch-index timing dependence was measurable, especially in unranking.
+10. **Timing:** The Python reference implementation is not constant time. Branch-index timing dependence was measurable in ranking on the recorded runner. No constant-time claim is made for either operation.
 11. **Domain permutation:** No permutation or inverse failure occurred across four domains. Authentication rejected every tampered tag. Mean avalanche was 0.478, but the construction remains research-only.
 
 ## Correctness and proof evidence
