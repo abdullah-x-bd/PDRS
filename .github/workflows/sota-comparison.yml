@@ -1,26 +1,24 @@
 name: Five-baseline SOTA comparison
 
 on:
-  push:
-    branches: [main, "agent/sota-five-way-comparison"]
+  pull_request:
     paths:
-      - "benchmarks/sota/corpus.py"
-      - "benchmarks/sota/run_comparison.py"
-      - "benchmarks/sota/run_chunk.py"
-      - "benchmarks/sota/assemble_chunks.py"
-      - "benchmarks/sota/assemble.py"
-      - "benchmarks/sota/BENCHMARK_PROTOCOL.md"
-      - "benchmarks/sota/bin/**"
-      - "benchmarks/sota/haskell/**"
+      - "benchmarks/sota/**"
+      - "requirements-sota.txt"
+      - ".github/workflows/sota-comparison.yml"
+  push:
+    branches: [main]
+    paths:
+      - "benchmarks/sota/**"
       - "requirements-sota.txt"
       - ".github/workflows/sota-comparison.yml"
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: sota-comparison-${{ github.ref }}
+  group: sota-comparison-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -205,17 +203,3 @@ jobs:
             benchmarks/sota/corpus_manifest.json
             benchmarks/sota/grammars
             benchmarks/sota/schemas
-
-      - name: Commit evidence to comparison branch
-        if: github.event_name == 'push' && github.ref == 'refs/heads/agent/sota-five-way-comparison'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add results/sota benchmarks/sota/corpus_manifest.json benchmarks/sota/grammars benchmarks/sota/schemas
-          if git diff --cached --quiet; then
-            echo "No evidence changes to commit."
-            exit 0
-          fi
-          git commit -m "Add five-baseline comparison evidence"
-          git pull --rebase origin "${GITHUB_REF_NAME}"
-          git push origin HEAD:"${GITHUB_REF_NAME}"
