@@ -47,18 +47,28 @@ jobs:
             local url="$1"
             local wanted="$2"
             local temp="downloads/$(basename "$wanted").download"
-            curl --fail --location --retry 3 --silent --show-error "$url" --output "$temp"
+            echo "Downloading $url to $temp"
+            curl \
+              --fail --location --retry 2 --retry-all-errors \
+              --connect-timeout 15 --max-time 120 \
+              --user-agent "PDRS-Research-Evaluation/1.0" \
+              --show-error --silent \
+              --dump-header "${temp}.headers" \
+              "$url" --output "$temp"
+            sed -n '1,30p' "${temp}.headers"
+            file "$temp"
             if python - "$temp" <<'PY'
           import pathlib, sys
           raise SystemExit(0 if pathlib.Path(sys.argv[1]).read_bytes()[:2] == b'PK' else 1)
           PY
             then
+              rm -rf downloads/unpacked
               mkdir -p downloads/unpacked
               unzip -oq "$temp" -d downloads/unpacked
               found=$(find downloads/unpacked -type f -name "$(basename "$wanted")" | head -1)
               if [ -z "$found" ]; then
                 echo "Could not find $(basename "$wanted") in ISO download" >&2
-                find downloads/unpacked -type f -maxdepth 5 >&2
+                find downloads/unpacked -maxdepth 6 -type f >&2
                 exit 1
               fi
               cp "$found" "$wanted"
@@ -74,7 +84,6 @@ jobs:
           PY
           }
           download_xsd "https://www.iso20022.org/message/23503/download" "benchmarks/real_program/vendor/pain.001.001.13.xsd"
-          rm -rf downloads/unpacked
           download_xsd "https://www.iso20022.org/message/23500/download" "benchmarks/real_program/vendor/pacs.008.001.14.xsd"
           sha256sum benchmarks/real_program/vendor/*.xsd | tee benchmarks/real_program/vendor/SHA256SUMS.txt
           cat > benchmarks/real_program/vendor/SOURCES.json <<'JSON'
@@ -95,10 +104,12 @@ jobs:
             --xsd-dir benchmarks/real_program/vendor "${args[@]}"
       - name: Upload complete real-program evidence
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: real-program-finance-evidence
           path: |
             results/real_program
             benchmarks/real_program/vendor/SOURCES.json
             benchmarks/real_program/vendor/SHA256SUMS.txt
+            downloads/*.headers
           retention-days: 90
