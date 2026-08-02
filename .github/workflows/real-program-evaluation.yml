@@ -38,61 +38,63 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e .
           python -m pip install -r benchmarks/real_program/requirements.txt
-      - name: Download current official ISO 20022 schemas
+      - name: Retrieve current ISO 20022 schemas with pinned mirror fallback
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p benchmarks/real_program/vendor downloads
           download_xsd() {
-            local url="$1"
-            local wanted="$2"
+            local official="$1"
+            local mirror="$2"
+            local wanted="$3"
             local temp="downloads/$(basename "$wanted").download"
-            echo "Downloading $url to $temp"
-            curl \
-              --fail --location --retry 2 --retry-all-errors \
-              --connect-timeout 15 --max-time 120 \
+            local source="official"
+            echo "Trying official source $official"
+            if ! curl \
+              --fail --location --connect-timeout 10 --max-time 20 \
               --user-agent "PDRS-Research-Evaluation/1.0" \
               --show-error --silent \
-              --dump-header "${temp}.headers" \
-              "$url" --output "$temp"
-            sed -n '1,30p' "${temp}.headers"
-            file "$temp"
-            if python - "$temp" <<'PY'
-          import pathlib, sys
-          raise SystemExit(0 if pathlib.Path(sys.argv[1]).read_bytes()[:2] == b'PK' else 1)
-          PY
-            then
-              rm -rf downloads/unpacked
-              mkdir -p downloads/unpacked
-              unzip -oq "$temp" -d downloads/unpacked
-              found=$(find downloads/unpacked -type f -name "$(basename "$wanted")" | head -1)
-              if [ -z "$found" ]; then
-                echo "Could not find $(basename "$wanted") in ISO download" >&2
-                find downloads/unpacked -maxdepth 6 -type f >&2
-                exit 1
-              fi
-              cp "$found" "$wanted"
-            else
-              cp "$temp" "$wanted"
+              "$official" --output "$temp"; then
+              source="pinned_mirror"
+              echo "Official host unavailable; using pinned mirror $mirror"
+              curl \
+                --fail --location --retry 3 --connect-timeout 10 --max-time 60 \
+                --show-error --silent \
+                "$mirror" --output "$temp"
             fi
-            python - "$wanted" <<'PY'
+            cp "$temp" "$wanted"
+            python - "$wanted" "$source" <<'PY'
           from lxml import etree
           import pathlib, sys
           path = pathlib.Path(sys.argv[1])
-          etree.parse(str(path))
-          print(path, path.stat().st_size)
+          root = etree.parse(str(path)).getroot()
+          print(path, path.stat().st_size, sys.argv[2], root.get('targetNamespace'))
           PY
+            printf '%s\t%s\t%s\n' "$(basename "$wanted")" "$source" "$(sha256sum "$wanted" | cut -d' ' -f1)" >> downloads/xsd-provenance.tsv
           }
-          download_xsd "https://www.iso20022.org/message/23503/download" "benchmarks/real_program/vendor/pain.001.001.13.xsd"
-          download_xsd "https://www.iso20022.org/message/23500/download" "benchmarks/real_program/vendor/pacs.008.001.14.xsd"
+          download_xsd \
+            "https://www.iso20022.org/message/23503/download" \
+            "https://raw.githubusercontent.com/sebastienrousseau/pacs008.github.io/2a35902f3ec7cdfe9f04c9d52743cea3e3d25630/static/schemas/pain.001.001.13.xsd" \
+            "benchmarks/real_program/vendor/pain.001.001.13.xsd"
+          download_xsd \
+            "https://www.iso20022.org/message/23500/download" \
+            "https://raw.githubusercontent.com/WojMam/xsdParserExample/5217c9a7fbb7d2d7154d86c182d184f43a116fac/src/main/resources/xsd/pacs.008.001.14.xsd" \
+            "benchmarks/real_program/vendor/pacs.008.001.14.xsd"
           sha256sum benchmarks/real_program/vendor/*.xsd | tee benchmarks/real_program/vendor/SHA256SUMS.txt
           cat > benchmarks/real_program/vendor/SOURCES.json <<'JSON'
           {
-            "pain.001.001.13": "https://www.iso20022.org/message/23503/download",
-            "pacs.008.001.14": "https://www.iso20022.org/message/23500/download",
-            "retrieved_by": "GitHub Actions real-program evaluation"
+            "pain.001.001.13": {
+              "official": "https://www.iso20022.org/message/23503/download",
+              "mirror": "https://raw.githubusercontent.com/sebastienrousseau/pacs008.github.io/2a35902f3ec7cdfe9f04c9d52743cea3e3d25630/static/schemas/pain.001.001.13.xsd"
+            },
+            "pacs.008.001.14": {
+              "official": "https://www.iso20022.org/message/23500/download",
+              "mirror": "https://raw.githubusercontent.com/WojMam/xsdParserExample/5217c9a7fbb7d2d7154d86c182d184f43a116fac/src/main/resources/xsd/pacs.008.001.14.xsd"
+            },
+            "policy": "Official source is attempted first. A commit-pinned public copy with ISO Standards Editor provenance is used only when the official host is unreachable."
           }
           JSON
+          cat downloads/xsd-provenance.tsv
       - name: Run PDRS unit tests
         run: PYTHONPATH=src python -m unittest discover -s tests -v
       - name: Run all three real-program evaluations
@@ -111,5 +113,5 @@ jobs:
             results/real_program
             benchmarks/real_program/vendor/SOURCES.json
             benchmarks/real_program/vendor/SHA256SUMS.txt
-            downloads/*.headers
+            downloads/xsd-provenance.tsv
           retention-days: 90
