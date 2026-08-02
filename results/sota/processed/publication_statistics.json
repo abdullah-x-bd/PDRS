@@ -1,0 +1,22 @@
+{
+  "tests": 77,
+  "holm_families": [
+    "bug_discovery",
+    "coverage",
+    "exact_throughput_exploratory",
+    "first_bug",
+    "parallel_overlap",
+    "throughput_exploratory",
+    "uniformity"
+  ],
+  "significant_pdrs_better": 24,
+  "significant_pdrs_worse": 26,
+  "comparators": [
+    "feat",
+    "smallcheck",
+    "hypothesis",
+    "grammarinator",
+    "quickcheck"
+  ],
+  "note": "Positive oriented differences and positive rank-biserial effects favor PDRS. Throughput families are exploratory because method cells may run on different hosted runners."
+}
