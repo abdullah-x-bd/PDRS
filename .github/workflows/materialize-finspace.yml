@@ -6,6 +6,10 @@ on:
     paths:
       - ".finspace-bootstrap/**"
       - ".github/workflows/materialize-finspace.yml"
+  pull_request:
+    paths:
+      - ".finspace-bootstrap/**"
+      - ".github/workflows/materialize-finspace.yml"
   workflow_dispatch:
 
 permissions:
@@ -103,6 +107,7 @@ jobs:
           PY
           rm -rf "$package_dir/dist" "$package_dir"/*.egg-info "$package_dir/src"/*.egg-info
       - name: Remove bootstrap transport and commit source
+        if: github.event_name != 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
