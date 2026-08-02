@@ -1,0 +1,80 @@
+{
+  "analytic_error": {
+    "count": 1200,
+    "max": 1.2079226507921703e-13,
+    "mean": 7.437989609316119e-15,
+    "median": 4.884981308350689e-15,
+    "p95": 2.673417043297369e-14
+  },
+  "binomial_error": {
+    "count": 606,
+    "max": 0.021255537644925937,
+    "mean": 0.0009753934857526644,
+    "median": 0.0001130243403348885,
+    "p95": 0.00458214906211829
+  },
+  "budget": 1200,
+  "cross_engine_cases": 606,
+  "finite_difference_error": {
+    "count": 606,
+    "max": 0.03855667283596631,
+    "mean": 0.001801776657717499,
+    "median": 0.00013065331646100464,
+    "p95": 0.008299715558349519
+  },
+  "generation": [
+    {
+      "duplicate": 0,
+      "evaluation": "quantlib",
+      "generated": 1200,
+      "generation_per_second": 363477.42487014184,
+      "generation_seconds": 0.0033014430000122275,
+      "method": "pdrs_without_replacement",
+      "unique": 1200,
+      "unique_rate": 1.0
+    },
+    {
+      "duplicate": 0,
+      "evaluation": "quantlib",
+      "generated": 1200,
+      "generation_per_second": 381083.5220754525,
+      "generation_seconds": 0.0031489160000006677,
+      "method": "pdrs_with_replacement",
+      "unique": 1200,
+      "unique_rate": 1.0
+    },
+    {
+      "duplicate": 1,
+      "evaluation": "quantlib",
+      "generated": 1200,
+      "generation_per_second": 236031.73997443967,
+      "generation_seconds": 0.005084062000008771,
+      "method": "local_uniform_grammar",
+      "unique": 1199,
+      "unique_rate": 0.9991666666666666
+    }
+  ],
+  "metamorphic_cases": 600,
+  "oracle_failures": 0,
+  "package": "QuantLib",
+  "package_version": "1.43",
+  "pdrs_overlap_fraction": 0.0,
+  "priced": 1200,
+  "pricing_latency_ms": {
+    "count": 1200,
+    "max": 3.3177370000032624,
+    "mean": 1.0127725916667054,
+    "median": 1.853800500015268,
+    "p95": 1.9194270499951926
+  },
+  "put_call_parity_error": {
+    "count": 1200,
+    "max": 6.750155989720952e-14,
+    "mean": 1.0134670880290741e-14,
+    "median": 7.105427357601002e-15,
+    "p95": 2.842170943040401e-14
+  },
+  "random_overlap_fraction": 0.0007501875468867217,
+  "schema_count": 3358656,
+  "schema_hash": "cc1eb5009007c496ace2c1ab3493f6bc08e1223f5906d577076a9a0bb8a09df8"
+}

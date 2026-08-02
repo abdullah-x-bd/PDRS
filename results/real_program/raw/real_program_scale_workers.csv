@@ -1,0 +1,4 @@
+schema,domain,workers,per_worker,pdrs_total_unique_within_workers,pdrs_cross_worker_overlap,pdrs_overlap_rate,random_total_unique_within_workers,random_cross_worker_overlap,random_overlap_rate
+simplefix,719287632,8,50000,400000,0,0.0,399990,98,0.00024500612515312883
+quantlib,3358656,8,50000,400000,0,0.0,397081,20078,0.050563990722295955
+iso20022,4320000,8,50000,400000,0,0.0,397690,15828,0.03979984409967563

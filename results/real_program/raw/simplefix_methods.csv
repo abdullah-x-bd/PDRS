@@ -1,0 +1,4 @@
+evaluation,generated,unique,duplicate,unique_rate,generation_seconds,generation_per_second,executed,seconds,cases_per_second,encoded_bytes,oracle_failures,message_type_counts,method,coverage_percent,covered_lines,num_statements,covered_branches,num_branches
+simplefix,3000,3000,0,1.0,0.008269194999996898,362792.26696203504,3000,2.036155270000009,1473.3650445036967,612213,0,"{'G': 2974, 'D': 25, 'F': 1}",pdrs_without_replacement,11.615384615384615,100,1108,51,192
+simplefix,3000,3000,0,1.0,0.008155774000002225,367837.5590102401,3000,2.023668359999988,1482.4563447738137,612213,0,"{'G': 2974, 'D': 25, 'F': 1}",pdrs_with_replacement,11.615384615384615,100,1108,51,192
+simplefix,3000,2941,59,0.9803333333333333,0.010170250000001602,294977.99955748656,3000,1.7124584940000034,1751.8672776661144,519751,0,"{'F': 748, 'G': 717, 'V': 800, 'D': 735}",local_uniform_grammar,11.615384615384615,100,1108,51,192

@@ -1,0 +1,263 @@
+{
+  "environment": {
+    "cpu_count": 4,
+    "machine": "x86_64",
+    "packages": {
+      "QuantLib": "1.43",
+      "lxml": "6.1.1.0",
+      "simplefix": "1.0.17",
+      "xmlschema": "4.3.2"
+    },
+    "platform": "Linux-6.17.0-1020-azure-x86_64-with-glibc2.39",
+    "processor": "x86_64",
+    "python": "3.12.13",
+    "timestamp_utc": "2026-08-02T14:11:32Z"
+  },
+  "iso20022": {
+    "budget": 800,
+    "generation": [
+      {
+        "duplicate": 0,
+        "evaluation": "iso20022",
+        "generated": 800,
+        "generation_per_second": 405834.6852679152,
+        "generation_seconds": 0.0019712460000107512,
+        "method": "pdrs_without_replacement",
+        "unique": 800,
+        "unique_rate": 1.0
+      },
+      {
+        "duplicate": 0,
+        "evaluation": "iso20022",
+        "generated": 800,
+        "generation_per_second": 441592.9804427362,
+        "generation_seconds": 0.0018116229999805,
+        "method": "pdrs_with_replacement",
+        "unique": 800,
+        "unique_rate": 1.0
+      },
+      {
+        "duplicate": 0,
+        "evaluation": "iso20022",
+        "generated": 800,
+        "generation_per_second": 297830.89757406816,
+        "generation_seconds": 0.00268608799999015,
+        "method": "local_uniform_grammar",
+        "unique": 800,
+        "unique_rate": 1.0
+      }
+    ],
+    "message_counts": {
+      "pacs.008.001.14": 100,
+      "pain.001.001.13": 700
+    },
+    "mutation_rejection_rate": 1.0,
+    "mutations": 1000,
+    "mutations_rejected_by_both": 1000,
+    "official_xsds": {
+      "pacs.008.001.14": "benchmarks/real_program/vendor/pacs.008.001.14.xsd",
+      "pain.001.001.13": "benchmarks/real_program/vendor/pain.001.001.13.xsd"
+    },
+    "packages": {
+      "lxml": [
+        6,
+        1,
+        1,
+        0
+      ],
+      "xmlschema": "4.3.2"
+    },
+    "pdrs_overlap_fraction": 0.0,
+    "random_overlap_fraction": 0.0008753282480930349,
+    "schema_count": 4320000,
+    "schema_hash": "4eabbf6a456c8ee8d7228f800dc1faae0b0904cc4dda476485a359e30da445f9",
+    "valid_document_failures": 0,
+    "valid_documents": 800,
+    "validator_disagreements": 0
+  },
+  "quantlib": {
+    "analytic_error": {
+      "count": 1200,
+      "max": 1.2079226507921703e-13,
+      "mean": 7.437989609316119e-15,
+      "median": 4.884981308350689e-15,
+      "p95": 2.673417043297369e-14
+    },
+    "binomial_error": {
+      "count": 606,
+      "max": 0.021255537644925937,
+      "mean": 0.0009753934857526644,
+      "median": 0.0001130243403348885,
+      "p95": 0.00458214906211829
+    },
+    "budget": 1200,
+    "cross_engine_cases": 606,
+    "finite_difference_error": {
+      "count": 606,
+      "max": 0.03855667283596631,
+      "mean": 0.001801776657717499,
+      "median": 0.00013065331646100464,
+      "p95": 0.008299715558349519
+    },
+    "generation": [
+      {
+        "duplicate": 0,
+        "evaluation": "quantlib",
+        "generated": 1200,
+        "generation_per_second": 363477.42487014184,
+        "generation_seconds": 0.0033014430000122275,
+        "method": "pdrs_without_replacement",
+        "unique": 1200,
+        "unique_rate": 1.0
+      },
+      {
+        "duplicate": 0,
+        "evaluation": "quantlib",
+        "generated": 1200,
+        "generation_per_second": 381083.5220754525,
+        "generation_seconds": 0.0031489160000006677,
+        "method": "pdrs_with_replacement",
+        "unique": 1200,
+        "unique_rate": 1.0
+      },
+      {
+        "duplicate": 1,
+        "evaluation": "quantlib",
+        "generated": 1200,
+        "generation_per_second": 236031.73997443967,
+        "generation_seconds": 0.005084062000008771,
+        "method": "local_uniform_grammar",
+        "unique": 1199,
+        "unique_rate": 0.9991666666666666
+      }
+    ],
+    "metamorphic_cases": 600,
+    "oracle_failures": 0,
+    "package": "QuantLib",
+    "package_version": "1.43",
+    "pdrs_overlap_fraction": 0.0,
+    "priced": 1200,
+    "pricing_latency_ms": {
+      "count": 1200,
+      "max": 3.3177370000032624,
+      "mean": 1.0127725916667054,
+      "median": 1.853800500015268,
+      "p95": 1.9194270499951926
+    },
+    "put_call_parity_error": {
+      "count": 1200,
+      "max": 6.750155989720952e-14,
+      "mean": 1.0134670880290741e-14,
+      "median": 7.105427357601002e-15,
+      "p95": 2.842170943040401e-14
+    },
+    "random_overlap_fraction": 0.0007501875468867217,
+    "schema_count": 3358656,
+    "schema_hash": "cc1eb5009007c496ace2c1ab3493f6bc08e1223f5906d577076a9a0bb8a09df8"
+  },
+  "simplefix": {
+    "budget_per_method": 3000,
+    "methods": [
+      {
+        "cases_per_second": 1473.3650445036967,
+        "coverage_percent": 11.615384615384615,
+        "covered_branches": 51,
+        "covered_lines": 100,
+        "duplicate": 0,
+        "encoded_bytes": 612213,
+        "evaluation": "simplefix",
+        "executed": 3000,
+        "generated": 3000,
+        "generation_per_second": 362792.26696203504,
+        "generation_seconds": 0.008269194999996898,
+        "message_type_counts": {
+          "D": 25,
+          "F": 1,
+          "G": 2974
+        },
+        "method": "pdrs_without_replacement",
+        "num_branches": 192,
+        "num_statements": 1108,
+        "oracle_failures": 0,
+        "seconds": 2.036155270000009,
+        "unique": 3000,
+        "unique_rate": 1.0
+      },
+      {
+        "cases_per_second": 1482.4563447738137,
+        "coverage_percent": 11.615384615384615,
+        "covered_branches": 51,
+        "covered_lines": 100,
+        "duplicate": 0,
+        "encoded_bytes": 612213,
+        "evaluation": "simplefix",
+        "executed": 3000,
+        "generated": 3000,
+        "generation_per_second": 367837.5590102401,
+        "generation_seconds": 0.008155774000002225,
+        "message_type_counts": {
+          "D": 25,
+          "F": 1,
+          "G": 2974
+        },
+        "method": "pdrs_with_replacement",
+        "num_branches": 192,
+        "num_statements": 1108,
+        "oracle_failures": 0,
+        "seconds": 2.023668359999988,
+        "unique": 3000,
+        "unique_rate": 1.0
+      },
+      {
+        "cases_per_second": 1751.8672776661144,
+        "coverage_percent": 11.615384615384615,
+        "covered_branches": 51,
+        "covered_lines": 100,
+        "duplicate": 59,
+        "encoded_bytes": 519751,
+        "evaluation": "simplefix",
+        "executed": 3000,
+        "generated": 3000,
+        "generation_per_second": 294977.99955748656,
+        "generation_seconds": 0.010170250000001602,
+        "message_type_counts": {
+          "D": 735,
+          "F": 748,
+          "G": 717,
+          "V": 800
+        },
+        "method": "local_uniform_grammar",
+        "num_branches": 192,
+        "num_statements": 1108,
+        "oracle_failures": 0,
+        "seconds": 1.7124584940000034,
+        "unique": 2941,
+        "unique_rate": 0.9803333333333333
+      }
+    ],
+    "mutations": {
+      "bad_body_length": {
+        "message": 400
+      },
+      "bad_checksum": {
+        "message": 400
+      },
+      "empty_sender": {
+        "exception": 400
+      },
+      "missing_begin": {
+        "none": 400
+      },
+      "truncated": {
+        "none": 400
+      }
+    },
+    "package": "simplefix",
+    "package_version": "1.0.17",
+    "pdrs_overlap_fraction": 0.0,
+    "random_overlap_fraction": 0.0,
+    "schema_count": 719287632,
+    "schema_hash": "a2e4c8302ee5b5a5b53300650bc695f6b8f32720131975ed95543d27dea3628b",
+    "valid_oracle_failures": 0
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "budget_per_method": 3000,
+  "methods": [
+    {
+      "cases_per_second": 1473.3650445036967,
+      "coverage_percent": 11.615384615384615,
+      "covered_branches": 51,
+      "covered_lines": 100,
+      "duplicate": 0,
+      "encoded_bytes": 612213,
+      "evaluation": "simplefix",
+      "executed": 3000,
+      "generated": 3000,
+      "generation_per_second": 362792.26696203504,
+      "generation_seconds": 0.008269194999996898,
+      "message_type_counts": {
+        "D": 25,
+        "F": 1,
+        "G": 2974
+      },
+      "method": "pdrs_without_replacement",
+      "num_branches": 192,
+      "num_statements": 1108,
+      "oracle_failures": 0,
+      "seconds": 2.036155270000009,
+      "unique": 3000,
+      "unique_rate": 1.0
+    },
+    {
+      "cases_per_second": 1482.4563447738137,
+      "coverage_percent": 11.615384615384615,
+      "covered_branches": 51,
+      "covered_lines": 100,
+      "duplicate": 0,
+      "encoded_bytes": 612213,
+      "evaluation": "simplefix",
+      "executed": 3000,
+      "generated": 3000,
+      "generation_per_second": 367837.5590102401,
+      "generation_seconds": 0.008155774000002225,
+      "message_type_counts": {
+        "D": 25,
+        "F": 1,
+        "G": 2974
+      },
+      "method": "pdrs_with_replacement",
+      "num_branches": 192,
+      "num_statements": 1108,
+      "oracle_failures": 0,
+      "seconds": 2.023668359999988,
+      "unique": 3000,
+      "unique_rate": 1.0
+    },
+    {
+      "cases_per_second": 1751.8672776661144,
+      "coverage_percent": 11.615384615384615,
+      "covered_branches": 51,
+      "covered_lines": 100,
+      "duplicate": 59,
+      "encoded_bytes": 519751,
+      "evaluation": "simplefix",
+      "executed": 3000,
+      "generated": 3000,
+      "generation_per_second": 294977.99955748656,
+      "generation_seconds": 0.010170250000001602,
+      "message_type_counts": {
+        "D": 735,
+        "F": 748,
+        "G": 717,
+        "V": 800
+      },
+      "method": "local_uniform_grammar",
+      "num_branches": 192,
+      "num_statements": 1108,
+      "oracle_failures": 0,
+      "seconds": 1.7124584940000034,
+      "unique": 2941,
+      "unique_rate": 0.9803333333333333
+    }
+  ],
+  "mutations": {
+    "bad_body_length": {
+      "message": 400
+    },
+    "bad_checksum": {
+      "message": 400
+    },
+    "empty_sender": {
+      "exception": 400
+    },
+    "missing_begin": {
+      "none": 400
+    },
+    "truncated": {
+      "none": 400
+    }
+  },
+  "package": "simplefix",
+  "package_version": "1.0.17",
+  "pdrs_overlap_fraction": 0.0,
+  "random_overlap_fraction": 0.0,
+  "schema_count": 719287632,
+  "schema_hash": "a2e4c8302ee5b5a5b53300650bc695f6b8f32720131975ed95543d27dea3628b",
+  "valid_oracle_failures": 0
+}

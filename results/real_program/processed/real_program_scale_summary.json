@@ -1,0 +1,249 @@
+{
+  "budgets": [
+    10000,
+    100000,
+    500000
+  ],
+  "duplicates": [
+    {
+      "budget": 10000,
+      "domain": 719287632,
+      "duplicate_rate": 0.0,
+      "duplicates": 0,
+      "expected_duplicates": 0.0691995094421145,
+      "method": "random_with_replacement",
+      "schema": "simplefix",
+      "seconds": 0.0025389399999937723,
+      "unique": 10000
+    },
+    {
+      "budget": 10000,
+      "domain": 719287632,
+      "duplicate_rate": 0.0,
+      "duplicates": 0,
+      "expected_duplicates": 0.0,
+      "method": "pdrs_without_replacement",
+      "schema": "simplefix",
+      "seconds": 0.0,
+      "unique": 10000
+    },
+    {
+      "budget": 100000,
+      "domain": 719287632,
+      "duplicate_rate": 8e-05,
+      "duplicates": 8,
+      "expected_duplicates": 6.947866110785981,
+      "method": "random_with_replacement",
+      "schema": "simplefix",
+      "seconds": 0.02635521900000981,
+      "unique": 99992
+    },
+    {
+      "budget": 100000,
+      "domain": 719287632,
+      "duplicate_rate": 0.0,
+      "duplicates": 0,
+      "expected_duplicates": 0.0,
+      "method": "pdrs_without_replacement",
+      "schema": "simplefix",
+      "seconds": 0.0,
+      "unique": 100000
+    },
+    {
+      "budget": 500000,
+      "domain": 719287632,
+      "duplicate_rate": 0.000384,
+      "duplicates": 192,
+      "expected_duplicates": 173.72713099216344,
+      "method": "random_with_replacement",
+      "schema": "simplefix",
+      "seconds": 0.1318330360000033,
+      "unique": 499808
+    },
+    {
+      "budget": 500000,
+      "domain": 719287632,
+      "duplicate_rate": 0.0,
+      "duplicates": 0,
+      "expected_duplicates": 0.0,
+      "method": "pdrs_without_replacement",
+      "schema": "simplefix",
+      "seconds": 0.0,
+      "unique": 500000
+    },
+    {
+      "budget": 10000,
+      "domain": 3358656,
+      "duplicate_rate": 0.0013,
+      "duplicates": 13,
+      "expected_duplicates": 14.870657798928733,
+      "method": "random_with_replacement",
+      "schema": "quantlib",
+      "seconds": 0.002494318000003659,
+      "unique": 9987
+    },
+    {
+      "budget": 10000,
+      "domain": 3358656,
+      "duplicate_rate": 0.0,
+      "duplicates": 0,
+      "expected_duplicates": 0.0,
+      "method": "pdrs_without_replacement",
+      "schema": "quantlib",
+      "seconds": 0.0,
+      "unique": 10000
+    },
+    {
+      "budget": 100000,
+      "domain": 3358656,
+      "duplicate_rate": 0.01466,
+      "duplicates": 1466,
+      "expected_duplicates": 1474.0109064697317,
+      "method": "random_with_replacement",
+      "schema": "quantlib",
+      "seconds": 0.024414385999989463,
+      "unique": 98534
+    },
+    {
+      "budget": 100000,
+      "domain": 3358656,
+      "duplicate_rate": 0.0,
+      "duplicates": 0,
+      "expected_duplicates": 0.0,
+      "method": "pdrs_without_replacement",
+      "schema": "quantlib",
+      "seconds": 0.0,
+      "unique": 100000
+    },
+    {
+      "budget": 500000,
+      "domain": 3358656,
+      "duplicate_rate": 0.071208,
+      "duplicates": 35604,
+      "expected_duplicates": 35437.10762290255,
+      "method": "random_with_replacement",
+      "schema": "quantlib",
+      "seconds": 0.12296507899999654,
+      "unique": 464396
+    },
+    {
+      "budget": 500000,
+      "domain": 3358656,
+      "duplicate_rate": 0.0,
+      "duplicates": 0,
+      "expected_duplicates": 0.0,
+      "method": "pdrs_without_replacement",
+      "schema": "quantlib",
+      "seconds": 0.0,
+      "unique": 500000
+    },
+    {
+      "budget": 10000,
+      "domain": 4320000,
+      "duplicate_rate": 0.0008,
+      "duplicates": 8,
+      "expected_duplicates": 11.563996222712376,
+      "method": "random_with_replacement",
+      "schema": "iso20022",
+      "seconds": 0.0028101039999910427,
+      "unique": 9992
+    },
+    {
+      "budget": 10000,
+      "domain": 4320000,
+      "duplicate_rate": 0.0,
+      "duplicates": 0,
+      "expected_duplicates": 0.0,
+      "method": "pdrs_without_replacement",
+      "schema": "iso20022",
+      "seconds": 0.0,
+      "unique": 10000
+    },
+    {
+      "budget": 100000,
+      "domain": 4320000,
+      "duplicate_rate": 0.01141,
+      "duplicates": 1141,
+      "expected_duplicates": 1148.516951692538,
+      "method": "random_with_replacement",
+      "schema": "iso20022",
+      "seconds": 0.027814734999992652,
+      "unique": 98859
+    },
+    {
+      "budget": 100000,
+      "domain": 4320000,
+      "duplicate_rate": 0.0,
+      "duplicates": 0,
+      "expected_duplicates": 0.0,
+      "method": "pdrs_without_replacement",
+      "schema": "iso20022",
+      "seconds": 0.0,
+      "unique": 100000
+    },
+    {
+      "budget": 500000,
+      "domain": 4320000,
+      "duplicate_rate": 0.056062,
+      "duplicates": 28031,
+      "expected_duplicates": 27850.37474853976,
+      "method": "random_with_replacement",
+      "schema": "iso20022",
+      "seconds": 0.13818130500000336,
+      "unique": 471969
+    },
+    {
+      "budget": 500000,
+      "domain": 4320000,
+      "duplicate_rate": 0.0,
+      "duplicates": 0,
+      "expected_duplicates": 0.0,
+      "method": "pdrs_without_replacement",
+      "schema": "iso20022",
+      "seconds": 0.0,
+      "unique": 500000
+    }
+  ],
+  "worker_configuration": {
+    "per_worker": 50000,
+    "workers": 8
+  },
+  "worker_overlap": [
+    {
+      "domain": 719287632,
+      "pdrs_cross_worker_overlap": 0,
+      "pdrs_overlap_rate": 0.0,
+      "pdrs_total_unique_within_workers": 400000,
+      "per_worker": 50000,
+      "random_cross_worker_overlap": 98,
+      "random_overlap_rate": 0.00024500612515312883,
+      "random_total_unique_within_workers": 399990,
+      "schema": "simplefix",
+      "workers": 8
+    },
+    {
+      "domain": 3358656,
+      "pdrs_cross_worker_overlap": 0,
+      "pdrs_overlap_rate": 0.0,
+      "pdrs_total_unique_within_workers": 400000,
+      "per_worker": 50000,
+      "random_cross_worker_overlap": 20078,
+      "random_overlap_rate": 0.050563990722295955,
+      "random_total_unique_within_workers": 397081,
+      "schema": "quantlib",
+      "workers": 8
+    },
+    {
+      "domain": 4320000,
+      "pdrs_cross_worker_overlap": 0,
+      "pdrs_overlap_rate": 0.0,
+      "pdrs_total_unique_within_workers": 400000,
+      "per_worker": 50000,
+      "random_cross_worker_overlap": 15828,
+      "random_overlap_rate": 0.03979984409967563,
+      "random_total_unique_within_workers": 397690,
+      "schema": "iso20022",
+      "workers": 8
+    }
+  ]
+}
