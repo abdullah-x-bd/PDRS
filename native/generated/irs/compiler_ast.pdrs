@@ -1,0 +1,21 @@
+PDRS_IR_V1
+name	bounded-expression-ast
+version	1
+root	expression_type
+node	C	expression_type	expression_type	5	literal	literal_kind	variable	variable_id	unary	unary_op	binary	binary_op	call	call_function
+node	C	literal_kind	literal_kind	3	int	literal_int	bool	literal_bool	string	literal_string
+node	R	literal_int	value	0	255	end
+node	R	literal_bool	value	0	1	end
+node	R	literal_string	atom	0	31	end
+node	R	variable_id	identifier	0	127	end
+node	R	unary_op	operator	0	3	unary_operand
+node	R	unary_operand	operand_class	0	5	end
+node	R	binary_op	operator	0	11	binary_left
+node	R	binary_left	left_class	0	5	binary_right
+node	R	binary_right	right_class	0	5	end
+node	R	call_function	function	0	31	call_arity
+node	C	call_arity	arity	3	zero	end	one	call_arg0_one	two	call_arg0_two
+node	R	call_arg0_one	arg0	0	63	end
+node	R	call_arg0_two	arg0	0	63	call_arg1_two
+node	R	call_arg1_two	arg1	0	63	end
+node	T	end

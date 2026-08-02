@@ -1,0 +1,12 @@
+PDRS_IR_V1
+name	permit-record
+version	1
+root	permit_type
+node	C	permit_type	permit_type	3	research	research_district	transit	transit_port	experimental	experimental_lab
+node	R	research_district	district	0	11	research_serial
+node	R	research_serial	serial	0	99	end
+node	R	transit_port	port	0	3	transit_serial
+node	R	transit_serial	serial	0	499	end
+node	R	experimental_lab	laboratory	0	19	experimental_serial
+node	R	experimental_serial	serial	0	39	end
+node	T	end

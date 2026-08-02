@@ -1,0 +1,14 @@
+PDRS_IR_V1
+name	fuzz-target-domain
+version	1
+root	family
+node	C	family	family	4	common	common_category	medium	medium_category	rare	rare_subtype	singleton	end
+node	R	common_category	category	0	7	common_id
+node	R	common_id	id	0	999	end
+node	R	medium_category	category	0	3	medium_id
+node	R	medium_id	id	0	199	end
+node	C	rare_subtype	subtype	3	tiny	rare_tiny	small	rare_small	large	rare_large
+node	R	rare_tiny	id	0	9	end
+node	R	rare_small	id	0	99	end
+node	R	rare_large	id	0	999	end
+node	T	end

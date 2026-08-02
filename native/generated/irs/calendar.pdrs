@@ -1,0 +1,32 @@
+PDRS_IR_V1
+name	calendar-2024-2025
+version	1
+root	year
+node	T	end
+node	R	days_2024_1	day	1	31	end
+node	R	days_2024_2	day	1	29	end
+node	R	days_2024_3	day	1	31	end
+node	R	days_2024_4	day	1	30	end
+node	R	days_2024_5	day	1	31	end
+node	R	days_2024_6	day	1	30	end
+node	R	days_2024_7	day	1	31	end
+node	R	days_2024_8	day	1	31	end
+node	R	days_2024_9	day	1	30	end
+node	R	days_2024_10	day	1	31	end
+node	R	days_2024_11	day	1	30	end
+node	R	days_2024_12	day	1	31	end
+node	C	months_2024	month	12	01	days_2024_1	02	days_2024_2	03	days_2024_3	04	days_2024_4	05	days_2024_5	06	days_2024_6	07	days_2024_7	08	days_2024_8	09	days_2024_9	10	days_2024_10	11	days_2024_11	12	days_2024_12
+node	R	days_2025_1	day	1	31	end
+node	R	days_2025_2	day	1	28	end
+node	R	days_2025_3	day	1	31	end
+node	R	days_2025_4	day	1	30	end
+node	R	days_2025_5	day	1	31	end
+node	R	days_2025_6	day	1	30	end
+node	R	days_2025_7	day	1	31	end
+node	R	days_2025_8	day	1	31	end
+node	R	days_2025_9	day	1	30	end
+node	R	days_2025_10	day	1	31	end
+node	R	days_2025_11	day	1	30	end
+node	R	days_2025_12	day	1	31	end
+node	C	months_2025	month	12	01	days_2025_1	02	days_2025_2	03	days_2025_3	04	days_2025_4	05	days_2025_5	06	days_2025_6	07	days_2025_7	08	days_2025_8	09	days_2025_9	10	days_2025_10	11	days_2025_11	12	days_2025_12
+node	C	year	year	2	2024	months_2024	2025	months_2025

@@ -1,0 +1,10 @@
+metric,value
+schemas,7
+native_exhaustive_roundtrips,389754
+cross_language_vectors,22096
+conformance_failures,0
+median_c_rank_speedup,49.39721558184784
+median_rust_rank_speedup,62.69109438010626
+median_c_unrank_speedup,136.50846770757389
+median_rust_unrank_speedup,38.75176585614421
+benchmark_iterations_per_schema_language,200000

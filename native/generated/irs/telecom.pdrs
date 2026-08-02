@@ -1,0 +1,17 @@
+PDRS_IR_V1
+name	telecom-control-message
+version	1
+root	message_type
+node	C	message_type	message_type	4	attach	attach_version	data	data_bearer	handover	handover_source	emergency	emergency_service
+node	R	attach_version	version	0	3	attach_device
+node	R	attach_device	device_class	0	15	attach_security
+node	R	attach_security	security	0	7	end
+node	R	data_bearer	bearer	0	7	data_qos
+node	R	data_qos	qos	0	8	data_payload
+node	R	data_payload	payload_bucket	0	63	end
+node	R	handover_source	source_region	0	5	handover_target
+node	R	handover_target	target_region	0	5	handover_cause
+node	R	handover_cause	cause	0	11	end
+node	R	emergency_service	service	0	3	emergency_priority
+node	R	emergency_priority	priority	0	2	end
+node	T	end
