@@ -1,0 +1,101 @@
+name: Five-baseline SOTA comparison
+
+on:
+  push:
+    branches: ["agent/sota-five-way-comparison"]
+    paths:
+      - "benchmarks/sota/**"
+      - "requirements-sota.txt"
+      - ".github/workflows/sota-comparison.yml"
+  pull_request:
+    paths:
+      - "benchmarks/sota/**"
+      - "requirements-sota.txt"
+      - ".github/workflows/sota-comparison.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sota-comparison-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: haskell-actions/setup@v2
+        with:
+          ghc-version: "9.8.4"
+          cabal-version: "3.12.1.0"
+
+      - name: Install Python comparison systems
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          python -m pip install -r requirements-experiments.txt
+          python -m pip install -r requirements-sota.txt
+
+      - name: Generate matched schemas and grammars
+        run: python benchmarks/sota/run_comparison.py prepare
+
+      - name: Compile Grammarinator generators
+        run: |
+          rm -rf benchmarks/sota/generated
+          mkdir -p benchmarks/sota/generated
+          for grammar in benchmarks/sota/grammars/*.g4; do
+            grammarinator-process "$grammar" -o benchmarks/sota/generated --no-actions
+          done
+
+      - name: Build and execute Feat and SmallCheck adapters
+        working-directory: benchmarks/sota/haskell
+        run: |
+          cabal update
+          cabal build
+          cabal run sota-haskell -- --out ../../../results/sota/haskell
+
+      - name: Run full matched comparison campaign
+        run: python benchmarks/sota/run_comparison.py run
+
+      - name: Assemble and verify evidence
+        run: |
+          python benchmarks/sota/assemble.py
+          python benchmarks/sota/run_comparison.py verify
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: five-baseline-sota-evidence
+          path: |
+            results/sota
+            benchmarks/sota/corpus_manifest.json
+            benchmarks/sota/grammars
+            benchmarks/sota/schemas
+
+      - name: Commit evidence to comparison branch
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add results/sota benchmarks/sota/corpus_manifest.json benchmarks/sota/grammars benchmarks/sota/schemas
+          if git diff --cached --quiet; then
+            echo "No evidence changes to commit."
+            exit 0
+          fi
+          git commit -m "Add five-baseline comparison evidence"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin HEAD:"${GITHUB_REF_NAME}"
