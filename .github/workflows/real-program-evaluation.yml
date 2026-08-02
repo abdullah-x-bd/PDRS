@@ -102,7 +102,7 @@ jobs:
         run: |
           args=()
           if [ "${{ inputs.quick || false }}" = "true" ]; then args+=(--quick); fi
-          PYTHONPATH=src python -m benchmarks.real_program.run_all \
+          PYTHONPATH=src python -m benchmarks.real_program.entrypoint \
             --xsd-dir benchmarks/real_program/vendor "${args[@]}"
       - name: Upload complete real-program evidence
         uses: actions/upload-artifact@v4
