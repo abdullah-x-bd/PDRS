@@ -25,9 +25,14 @@ environment = {
     "python": sys.version,
     "platform": platform.platform(),
     "machine": platform.machine(),
-    "packages": {
+    "python_packages": {
         name: importlib.metadata.version(name)
-        for name in ("hypothesis", "grammarinator", "combol", "numpy", "scipy", "matplotlib")
+        for name in ("hypothesis", "grammarinator", "numpy", "scipy", "matplotlib")
+    },
+    "haskell_packages": {
+        "QuickCheck": version(["ghc-pkg", "field", "QuickCheck", "version", "--simple-output"]),
+        "smallcheck": version(["ghc-pkg", "field", "smallcheck", "version", "--simple-output"]),
+        "testing-feat": version(["ghc-pkg", "field", "testing-feat", "version", "--simple-output"]),
     },
     "ghc": version(["ghc", "--version"]),
     "cabal": version(["cabal", "--version"]),
