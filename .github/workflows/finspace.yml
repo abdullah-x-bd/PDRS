@@ -1,0 +1,95 @@
+name: FinSpace package
+
+on:
+  pull_request:
+    paths:
+      - "finspace/**"
+      - "src/pdrs/**"
+      - "pyproject.toml"
+      - ".github/workflows/finspace.yml"
+  push:
+    branches: [main, "agent/**"]
+    paths:
+      - "finspace/**"
+      - "src/pdrs/**"
+      - "pyproject.toml"
+      - ".github/workflows/finspace.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  core:
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12", "3.13"]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - name: Install PDRS and FinSpace
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          python -m pip install -e "./finspace[dev,tabular]"
+      - name: Lint
+        run: ruff check finspace/src finspace/tests
+      - name: Test with coverage
+        run: pytest finspace/tests --ignore=finspace/tests/test_adapters.py --cov=finspace --cov-report=term-missing
+      - name: Build wheel and sdist
+        run: python -m build finspace
+      - name: Wheel smoke test
+        shell: bash
+        run: |
+          python -m venv /tmp/finspace-wheel
+          /tmp/finspace-wheel/bin/pip install .
+          /tmp/finspace-wheel/bin/pip install finspace/dist/finspace-*.whl --no-deps
+          /tmp/finspace-wheel/bin/finspace --version
+          /tmp/finspace-wheel/bin/finspace inspect finspace/examples/european_options.yaml
+      - uses: actions/upload-artifact@v4
+        if: matrix.python == '3.12'
+        with:
+          name: finspace-distribution
+          path: finspace/dist/*
+
+  integrations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install all integrations
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          python -m pip install -e "./finspace[dev,all]"
+      - name: Run adapter tests
+        run: pytest finspace/tests/test_adapters.py -v
+      - name: Run documented examples
+        working-directory: finspace
+        run: |
+          python examples/basic_usage.py
+          python - <<'PY'
+          from finspace.adapters import QuantLibEuropeanOptionPricer
+          from finspace.templates import european_option_space
+          space = european_option_space(
+              currencies=("USD",),
+              spots=(100.0,),
+              strikes=(100.0,),
+              maturities_days=(30,),
+              volatilities=(0.2,),
+              dividends=(0.0,),
+              rates_by_currency={"USD": (0.03,)},
+          )
+          record = space.sample(1, seed=1)[0]
+          result = QuantLibEuropeanOptionPricer()(record)
+          assert result["npv"] >= 0
+          print(space.rank(record), result)
+          PY
