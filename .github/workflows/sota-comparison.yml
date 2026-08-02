@@ -6,6 +6,7 @@ on:
     paths:
       - "benchmarks/sota/corpus.py"
       - "benchmarks/sota/run_comparison.py"
+      - "benchmarks/sota/run_combol_campaign.py"
       - "benchmarks/sota/assemble.py"
       - "benchmarks/sota/BENCHMARK_PROTOCOL.md"
       - "benchmarks/sota/bin/**"
@@ -16,6 +17,7 @@ on:
     paths:
       - "benchmarks/sota/corpus.py"
       - "benchmarks/sota/run_comparison.py"
+      - "benchmarks/sota/run_combol_campaign.py"
       - "benchmarks/sota/assemble.py"
       - "benchmarks/sota/BENCHMARK_PROTOCOL.md"
       - "benchmarks/sota/bin/**"
@@ -63,29 +65,6 @@ jobs:
           chmod +x benchmarks/sota/bin/grammarinator-generate
           echo "$GITHUB_WORKSPACE/benchmarks/sota/bin" >> "$GITHUB_PATH"
 
-      - name: Normalize CombOL parameter variables
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          path = Path("benchmarks/sota/run_comparison.py")
-          text = path.read_text(encoding="utf-8")
-          text = text.replace(
-              '    atoms: set[str] = {"dummy"}',
-              '    atoms: set[str] = set()',
-          )
-          old = '        factors.extend(["dummy"] * (domain.max_fields - len(widths)))'
-          new = '''        padding = domain.max_fields - len(widths)
-                  if padding:
-                      atoms.add("dummy")
-                      factors.extend(["dummy"] * padding)'''
-          if old in text:
-              text = text.replace(old, new)
-          elif new not in text:
-              raise SystemExit("CombOL normalization target was not found")
-          path.write_text(text, encoding="utf-8")
-          PY
-
       - name: Generate matched schemas and grammars
         run: python benchmarks/sota/run_comparison.py prepare
 
@@ -105,7 +84,7 @@ jobs:
           cabal run sota-haskell -- --out ../../../results/sota/haskell
 
       - name: Run full matched comparison campaign
-        run: python benchmarks/sota/run_comparison.py run
+        run: PYTHONPATH=benchmarks/sota python benchmarks/sota/run_combol_campaign.py
 
       - name: Assemble and verify evidence
         run: |
@@ -126,7 +105,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add benchmarks/sota/run_comparison.py results/sota benchmarks/sota/corpus_manifest.json benchmarks/sota/grammars benchmarks/sota/schemas
+          git add results/sota benchmarks/sota/corpus_manifest.json benchmarks/sota/grammars benchmarks/sota/schemas
           if git diff --cached --quiet; then
             echo "No evidence changes to commit."
             exit 0
