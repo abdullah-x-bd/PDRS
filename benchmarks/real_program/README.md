@@ -1,6 +1,6 @@
 # Real-program finance evaluation
 
-This campaign evaluates PDRS against three real financial software targets rather than synthetic seeded objects.
+This campaign evaluates PDRS against three real financial software targets rather than synthetic seeded objects. The complete measured results and limitations are in [`results/real_program/RESULTS.md`](../../results/real_program/RESULTS.md).
 
 ## Evaluation 1: SimpleFIX 1.0.17
 
@@ -21,22 +21,29 @@ Every selected scenario is priced with `AnalyticEuropeanEngine` and compared wit
 
 ## Evaluation 3: ISO 20022
 
-The workflow downloads the current official schemas directly from ISO 20022:
+The workflow evaluates:
 
 - `pain.001.001.13`, Customer Credit Transfer Initiation V13
 - `pacs.008.001.14`, FI-to-FI Customer Credit Transfer V14
 
-PDRS generates bounded valid payment profiles. Each XML document is independently validated with both lxml/libxml2 and the Python `xmlschema` implementation, decoded, and semantically checked. Controlled mutations remove required elements, alter currency and amount constraints, duplicate elements, or replace the namespace. The official XSDs are not committed; their source URLs and SHA-256 hashes are preserved with the evidence.
+The official ISO 20022 download endpoints are attempted first. When the official host is unreachable from the hosted runner, the workflow uses commit-pinned public XSD copies carrying ISO Standards Editor provenance. Exact source URLs, retrieval decisions, and SHA-256 hashes are preserved under `results/real_program/provenance/`.
+
+PDRS generates bounded valid payment profiles. Each XML document is independently validated with both lxml/libxml2 and the Python `xmlschema` implementation, decoded, and semantically checked. Controlled mutations remove required elements, alter currency and amount constraints, duplicate elements, or replace the namespace.
+
+## Large-campaign stress test
+
+The campaign additionally simulates 10,000, 100,000, and 500,000 scenario draws plus eight-worker campaigns. It measures duplicate draws and cross-worker overlap in the three real-program domains, comparing independent random replacement sampling with exact PDRS no-replacement generation and interval partitioning.
 
 ## Evidence
 
-The workflow produces:
+The repository contains:
 
 - raw CSV results for every case and method
 - exact rank-addressed failure records
 - processed JSON summaries
 - package coverage reports
 - environment metadata
+- XSD provenance
 - SHA-256 evidence checksums
 - SVG and PNG figures
 
@@ -45,8 +52,8 @@ Run locally with:
 ```bash
 python -m pip install -e .
 python -m pip install -r benchmarks/real_program/requirements.txt
-PYTHONPATH=src python -m benchmarks.real_program.run_all \
+PYTHONPATH=src python -m benchmarks.real_program.entrypoint \
   --xsd-dir benchmarks/real_program/vendor
 ```
 
-The XSD directory must contain `pain.001.001.13.xsd` and `pacs.008.001.14.xsd` downloaded from the official ISO 20022 catalogue.
+The XSD directory must contain `pain.001.001.13.xsd` and `pacs.008.001.14.xsd`. The GitHub workflow documents the official-first, pinned-mirror fallback retrieval procedure.
