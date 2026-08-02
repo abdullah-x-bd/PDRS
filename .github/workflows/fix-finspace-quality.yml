@@ -1,0 +1,117 @@
+name: Apply FinSpace quality fixes
+
+on:
+  push:
+    branches: ["agent/finspace-package"]
+    paths:
+      - ".github/workflows/fix-finspace-quality.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/finspace-package
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Apply deterministic Ruff fixes
+        run: |
+          python -m pip install "ruff>=0.8,<1"
+          ruff check finspace/src finspace/tests --fix
+          ruff check finspace/src finspace/tests
+      - name: Expand CLI coverage tests
+        run: |
+          cat > finspace/tests/test_cli.py <<'PY'
+          from __future__ import annotations
+
+          import json
+
+          from finspace import Field, Schema
+          from finspace.cli import main
+
+
+          def _schema_path(tmp_path):
+              schema_path = tmp_path / "schema.json"
+              Schema(
+                  name="cli",
+                  fields=(
+                      Field.enum("kind", ("a", "b")),
+                      Field.enum("value", (1, 2)),
+                  ),
+              ).save(schema_path)
+              return schema_path
+
+
+          def test_cli_inspect_and_unrank(tmp_path, capsys) -> None:
+              schema_path = _schema_path(tmp_path)
+              assert main(["inspect", str(schema_path)]) == 0
+              inspected = json.loads(capsys.readouterr().out)
+              assert inspected["count"] == 4
+              assert main(["unrank", str(schema_path), "1"]) == 0
+              decoded = json.loads(capsys.readouterr().out)
+              assert decoded["record"] == {"kind": "a", "value": 2}
+
+
+          def test_cli_rank_validate_sample_and_partition(tmp_path, capsys) -> None:
+              schema_path = _schema_path(tmp_path)
+              record_path = tmp_path / "record.json"
+              record_path.write_text(json.dumps({"kind": "b", "value": 1}), encoding="utf-8")
+
+              assert main(["rank", str(schema_path), str(record_path)]) == 0
+              ranked = json.loads(capsys.readouterr().out)
+              assert ranked["rank"] == 2
+
+              assert main(["validate", str(schema_path), '{"kind":"b","value":1}']) == 0
+              validated = json.loads(capsys.readouterr().out)
+              assert validated["valid"] is True
+              assert validated["rank"] == 2
+
+              assert main(["sample", str(schema_path), "-n", "3", "--seed", "42"]) == 0
+              sampled = [json.loads(line) for line in capsys.readouterr().out.splitlines()]
+              assert len(sampled) == 3
+              assert len({item["rank"] for item in sampled}) == 3
+
+              assert main(["partition", str(schema_path), "--workers", "3", "--worker", "1"]) == 0
+              partition = json.loads(capsys.readouterr().out)
+              assert partition["worker_id"] == 1
+              assert partition["worker_count"] == 3
+
+
+          def test_cli_stratified_sample_and_exports(tmp_path, capsys) -> None:
+              schema_path = _schema_path(tmp_path)
+              assert main(
+                  ["sample", str(schema_path), "-n", "4", "--seed", "7", "--stratify", "kind"]
+              ) == 0
+              sampled = [json.loads(line) for line in capsys.readouterr().out.splitlines()]
+              assert {item["record"]["kind"] for item in sampled} == {"a", "b"}
+
+              jsonl_path = tmp_path / "records.jsonl"
+              assert main(
+                  ["export", str(schema_path), str(jsonl_path), "--start", "1", "--limit", "2"]
+              ) == 0
+              exported = json.loads(capsys.readouterr().out)
+              assert exported["count"] == 2
+              assert len(jsonl_path.read_text(encoding="utf-8").splitlines()) == 2
+
+              csv_path = tmp_path / "records.csv"
+              assert main(
+                  ["export", str(schema_path), str(csv_path), "--format", "csv", "--limit", "2"]
+              ) == 0
+              capsys.readouterr()
+              assert len(csv_path.read_text(encoding="utf-8").splitlines()) == 3
+          PY
+          ruff check finspace/src finspace/tests --fix
+          ruff check finspace/src finspace/tests
+      - name: Commit quality fixes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add finspace/src finspace/tests
+          git diff --cached --quiet && exit 0
+          git commit -m "Fix FinSpace lint and expand CLI coverage"
+          git push origin HEAD:agent/finspace-package
