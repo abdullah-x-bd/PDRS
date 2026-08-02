@@ -34,6 +34,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e .
           python -m pip install -r requirements-experiments.txt
+          python -m pip install -r requirements-sota.txt
 
       - uses: actions/download-artifact@v4
         with:
