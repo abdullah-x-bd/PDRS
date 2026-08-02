@@ -1,0 +1,11 @@
+attack_id,attack,affected_property,current_control,status
+A001,Cyclic schema causes nontermination,availability,cycle detection,mitigated
+A002,Duplicate choice labels cause ambiguous parsing,canonicality,duplicate-label rejection,mitigated
+A003,Missing branch target causes partial graph,correctness,target validation,mitigated
+A004,Unreachable nodes create hash and review ambiguity,canonicality,unreachable-node rejection,mitigated
+A005,Early schema insertion changes later ranks,identifier stability,schema hash and version requirement,known limitation
+A006,Huge ranges cause large domain integers,availability,not yet resource-limited,open
+A007,Corrupted rank decodes to another valid object,integrity,external checksum or AE required,open
+A008,Secret-radix claim creates false security,confidentiality,explicit nonclaim,mitigated in documentation
+A009,Timing reveals branch structure,side channel,no constant-time claim,open
+A010,General predicates trigger hard counting,availability and completeness,language currently excludes predicates,mitigated by scope

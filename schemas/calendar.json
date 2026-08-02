@@ -1,0 +1,44 @@
+{
+  "name": "two-year-calendar-date",
+  "version": "1",
+  "root": "year",
+  "nodes": {
+    "year": {
+      "type": "choice",
+      "field": "year",
+      "branches": [
+        {"value": "2024", "target": "month_2024"},
+        {"value": "2025", "target": "month_2025"}
+      ]
+    },
+    "month_2024": {
+      "type": "choice",
+      "field": "month",
+      "branches": [
+        {"value": "01", "target": "d31"}, {"value": "02", "target": "d29"},
+        {"value": "03", "target": "d31"}, {"value": "04", "target": "d30"},
+        {"value": "05", "target": "d31"}, {"value": "06", "target": "d30"},
+        {"value": "07", "target": "d31"}, {"value": "08", "target": "d31"},
+        {"value": "09", "target": "d30"}, {"value": "10", "target": "d31"},
+        {"value": "11", "target": "d30"}, {"value": "12", "target": "d31"}
+      ]
+    },
+    "month_2025": {
+      "type": "choice",
+      "field": "month",
+      "branches": [
+        {"value": "01", "target": "d31"}, {"value": "02", "target": "d28"},
+        {"value": "03", "target": "d31"}, {"value": "04", "target": "d30"},
+        {"value": "05", "target": "d31"}, {"value": "06", "target": "d30"},
+        {"value": "07", "target": "d31"}, {"value": "08", "target": "d31"},
+        {"value": "09", "target": "d30"}, {"value": "10", "target": "d31"},
+        {"value": "11", "target": "d30"}, {"value": "12", "target": "d31"}
+      ]
+    },
+    "d28": {"type": "range", "field": "day", "start": 1, "stop": 28, "target": "end"},
+    "d29": {"type": "range", "field": "day", "start": 1, "stop": 29, "target": "end"},
+    "d30": {"type": "range", "field": "day", "start": 1, "stop": 30, "target": "end"},
+    "d31": {"type": "range", "field": "day", "start": 1, "stop": 31, "target": "end"},
+    "end": {"type": "terminal"}
+  }
+}

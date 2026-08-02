@@ -1,0 +1,27 @@
+name: Benchmark smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "src/**"
+      - "schemas/**"
+      - "scripts/run_benchmarks.py"
+      - "experiments/E002_density/**"
+
+permissions:
+  contents: read
+
+jobs:
+  density:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python scripts/run_benchmarks.py --output benchmark-output.csv
+      - uses: actions/upload-artifact@v4
+        with:
+          name: density-benchmark
+          path: benchmark-output.csv

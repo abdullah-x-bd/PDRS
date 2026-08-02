@@ -1,0 +1,9 @@
+{
+  "experiment_id": "E001",
+  "claim_ids": ["C001", "C002"],
+  "hypothesis": "The implementation is a bijection between valid objects and 0..N-1 for finite acyclic schemas.",
+  "metrics": ["rank_collisions", "round_trip_failures", "invalid_schema_acceptance"],
+  "command": "python -m unittest discover -s tests -v",
+  "random_seed": 20260802,
+  "status": "active"
+}

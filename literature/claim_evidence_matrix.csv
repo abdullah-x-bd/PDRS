@@ -1,0 +1,9 @@
+claim_id,claim,type,supporting_artifact,strength,status
+C001,Every committed schema has a finite positive domain,mathematical+executable,theory/theorems.md;tests/test_core.py,proof sketch+tests,verified for current model
+C002,Rank and unrank are mutual inverses on the current schema class,mathematical+executable,theory/theorems.md;tests/test_core.py;tests/test_generated_schemas.py,proof sketch+exhaustive tests,verified for current implementation
+C003,Sampling a uniform rank yields a uniform valid object,mathematical,theory/theorems.md,corollary of bijection,verified mathematically pending statistical study
+C004,Dependent schemas can use fewer fixed bits than naive field allocation,empirical,experiments/E002_density;results/baseline_density.csv,deterministic benchmark,verified on benchmark corpus
+C005,Whole-domain ranks are unstable under schema evolution,analytical,red_team/threat_model.md,reasoned counterexample,pending quantified experiment
+C006,PDRS can improve structured fuzzing coverage over rejection sampling,empirical,experiments/E003_fuzzing,preregistered experiment,pending
+C007,PDRS can safely serve as a domain compiler for established FPE,cryptographic composition,experiments/E004_crypto,design claim,pending proof and implementation
+C008,The foundational dynamic-radix idea is not novel,literature,literature/prior_art_matrix.csv,prior-art evidence,verified at high level

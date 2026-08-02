@@ -1,0 +1,29 @@
+name: Experiment
+description: Preregister a hypothesis, method, metrics, and stopping rule.
+title: "[EXP] "
+labels: ["experiment"]
+body:
+  - type: textarea
+    id: hypothesis
+    attributes:
+      label: Hypothesis
+    validations:
+      required: true
+  - type: textarea
+    id: variables
+    attributes:
+      label: Variables and controls
+    validations:
+      required: true
+  - type: textarea
+    id: metrics
+    attributes:
+      label: Metrics and analysis
+    validations:
+      required: true
+  - type: textarea
+    id: reproducibility
+    attributes:
+      label: Reproduction command and artifacts
+    validations:
+      required: true

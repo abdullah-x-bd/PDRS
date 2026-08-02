@@ -1,0 +1,9 @@
+{
+  "experiment_id": "E002",
+  "claim_ids": ["C004"],
+  "hypothesis": "Whole-domain ranking saves bits when field dependencies leave a sparse Cartesian product.",
+  "metrics": ["domain_size", "dense_bits", "naive_bits", "bits_saved", "naive_space_utilization"],
+  "command": "python scripts/run_benchmarks.py --output results/baseline_density.csv",
+  "random_seed": null,
+  "status": "active"
+}

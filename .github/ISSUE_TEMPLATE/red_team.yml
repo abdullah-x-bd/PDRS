@@ -1,0 +1,29 @@
+name: Red-team finding
+description: Record a failed assumption, adversarial schema, or robustness issue.
+title: "[RED] "
+labels: ["red-team"]
+body:
+  - type: textarea
+    id: target
+    attributes:
+      label: Target property
+    validations:
+      required: true
+  - type: textarea
+    id: attack
+    attributes:
+      label: Attack or counterexample
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+    validations:
+      required: true
+  - type: textarea
+    id: consequence
+    attributes:
+      label: Consequence and proposed control
+    validations:
+      required: true

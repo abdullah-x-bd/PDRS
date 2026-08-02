@@ -1,0 +1,9 @@
+source_id,title,authors,year,identifier,primary_source,status,notes
+S001,Enumerative Source Encoding,Thomas M. Cover,1973,doi:10.1109/TIT.1973.1054929,yes,verified,"Foundational rank-based encoding of constrained source sets"
+S002,Format-Preserving Encryption,"Mihir Bellare; Thomas Ristenpart; Phillip Rogaway; Till Stegers",2009,doi:10.1007/978-3-642-05445-7_19,yes,verified,"Formal FPE treatment including rank-then-encipher"
+S003,Recommendation for Block Cipher Modes of Operation: Methods for Format-Preserving Encryption,"Morris Dworkin; Nicky Mouha",2025,doi:10.6028/NIST.SP.800-38Gr1.2pd,yes,verified,"Second public draft; specifies FF1 and strengthens domain requirements"
+S004,Dynamic Radix Numeration Systems,"Émilie Charlier; Célia Cisternino; Manon Stipulanti",2013,conference paper,yes,to-review,"Exact bibliographic metadata and theorem overlap require full-text review"
+S005,Encode-then-encipher Encryption,"Mihir Bellare; Phillip Rogaway",2000,ASIACRYPT 2000 LNCS 1976,yes,verified,"Structured-message encryption and redundancy"
+S006,Abstract Numeration Systems,Various,1990s-present,literature cluster,mixed,to-review,"Ordered-language representations of integers"
+S007,ASN.1 Packed Encoding Rules,ITU-T,2021,ITU-T X.691,yes,to-review,"Constraint-aware field-oriented serialization baseline"
+S008,Protocol Buffers Encoding,Google,continuous,official documentation,yes,to-review,"Schema compiler and practical serialization baseline"

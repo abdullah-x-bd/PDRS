@@ -1,0 +1,5 @@
+schema,category,domain_size,dense_bits,naive_bits,bits_saved,encoding_efficiency,naive_space_utilization,schema_hash
+permit,dependent,4000,12,16,4,0.75,0.061035156,2eb0ee4b02c3d56c5ec6f8b485afa86c5226489a3b1e212ff2a97735994077d6
+two-year-calendar,dependent,731,10,14,4,0.714286,0.044616699,7caded9ab5b05bcaf947885b2ab841f5a7b27d336cc1c55ecd11281e9c94b939
+ai-actions,dependent,39,6,8,2,0.75,0.15234375,dede518999a92f37146c3d6c3be8461a5962315647d13fc860cf0238831d342d
+clock,fixed-mixed-radix,86400,17,17,0,1.0,0.659179688,a442566a42a7f942cf770ef69abf0c0daf6b4c63b670d0a91e92becae59bfb42

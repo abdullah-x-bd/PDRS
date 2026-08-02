@@ -1,0 +1,9 @@
+{
+  "experiment_id": "E004",
+  "claim_ids": ["C007"],
+  "hypothesis": "A canonical rank/unrank compiler can safely adapt an established permutation to a dependent structured domain when schema identity and integrity are bound.",
+  "metrics": ["ciphertext_validity", "throughput", "domain_bits", "timing_variance", "schema_confusion_failures"],
+  "command": "python experiments/E004_crypto/run.py",
+  "random_seed": 20260802,
+  "status": "design-only"
+}
