@@ -1,0 +1,112 @@
+name: SOTA evidence assembly recovery
+
+on:
+  push:
+    branches: ["agent/sota-five-way-comparison"]
+    paths:
+      - ".github/workflows/sota-assembly-recovery.yml"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: haskell-actions/setup@v2
+        with:
+          ghc-version: "9.8.4"
+          cabal-version: "3.12.1.0"
+
+      - name: Install evidence dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          python -m pip install -r requirements-experiments.txt
+          python -m pip install -r requirements-sota.txt
+
+      - name: Install pinned Haskell comparison packages
+        working-directory: benchmarks/sota/haskell
+        run: |
+          cabal update
+          cabal build --only-dependencies
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: sota-prepared-inputs
+          path: .
+          repository: abdullah-x-bd/PDRS
+          run-id: 30748438837
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: sota-chunk-*
+          path: results/sota/chunks
+          merge-multiple: true
+          repository: abdullah-x-bd/PDRS
+          run-id: 30748438837
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Audit downloaded comparison cells
+        run: |
+          test "$(find results/sota/chunks -name '*.json' | wc -l)" -eq 30
+          find results/sota/chunks -name '*.json' -print | sort
+
+      - name: Assemble all matched evidence
+        env:
+          PYTHONPATH: benchmarks/sota
+        run: python benchmarks/sota/assemble_chunks.py
+
+      - name: Run paired statistical analysis
+        run: python benchmarks/sota/statistics.py
+
+      - name: Record environment and checksums
+        run: python benchmarks/sota/assemble.py
+
+      - name: Verify complete evidence set
+        env:
+          PYTHONPATH: benchmarks/sota
+        run: |
+          python - <<'PY'
+          import run_comparison as rc
+          rc.METHODS = (
+              "pdrs",
+              "feat",
+              "smallcheck",
+              "hypothesis",
+              "grammarinator",
+              "quickcheck",
+          )
+          rc.verify()
+          PY
+          test "$(python - <<'PY'
+          import csv
+          with open('results/sota/raw/generation_runs.csv', newline='') as handle:
+              print(sum(1 for _ in csv.DictReader(handle)))
+          PY
+          )" -eq 1800
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: five-baseline-sota-evidence-recovered
+          retention-days: 30
+          path: |
+            results/sota
+            benchmarks/sota/corpus_manifest.json
+            benchmarks/sota/grammars
+            benchmarks/sota/schemas
