@@ -1,6 +1,9 @@
 name: SOTA evidence assembly recovery
 
 on:
+  pull_request:
+    paths:
+      - ".github/workflows/sota-assembly-recovery.yml"
   push:
     branches: ["agent/sota-five-way-comparison"]
     paths:
