@@ -1,0 +1,77 @@
+name: Native C and Rust evidence
+
+on:
+  push:
+    branches: [main, "agent/**"]
+    paths:
+      - "native/**"
+      - "scripts/native_evidence.py"
+      - "schemas/**"
+      - "src/pdrs/core.py"
+      - ".github/workflows/native.yml"
+      - "scripts/assemble_evidence.py"
+      - "scripts/verify_evidence.py"
+  pull_request:
+    paths:
+      - "native/**"
+      - "scripts/native_evidence.py"
+      - "schemas/**"
+      - "src/pdrs/core.py"
+      - ".github/workflows/native.yml"
+      - "scripts/assemble_evidence.py"
+      - "scripts/verify_evidence.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+      - name: Install experiment dependencies
+        run: python -m pip install -r requirements-experiments.txt
+      - name: Generate canonical native IR and vectors
+        run: PYTHONPATH=src python scripts/native_evidence.py prepare
+      - name: Build C with strict warnings
+        run: make -C native/c
+      - name: Build and test C with sanitizers
+        run: |
+          make -C native/c sanitize
+          for ir in native/generated/irs/*.pdrs; do native/c/pdrs-c-sanitize verify "$ir"; done
+      - name: Build Rust release and run Clippy
+        run: |
+          cargo fmt --manifest-path native/rust/Cargo.toml -- --check
+          cargo clippy --manifest-path native/rust/Cargo.toml --all-targets -- -D warnings
+          cargo build --release --manifest-path native/rust/Cargo.toml
+      - name: Run cross-language conformance and benchmark suite
+        run: |
+          PYTHONPATH=src python scripts/native_evidence.py run \
+            --c native/c/pdrs-c \
+            --rust native/rust/target/release/pdrs-native \
+            --iterations 200000
+      - name: Assemble and verify expanded evidence
+        run: |
+          python scripts/assemble_evidence.py
+          python scripts/verify_evidence.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-evidence
+          path: |
+            native/generated
+            results/raw/native_*.csv
+            results/processed/native_*.csv
+            results/processed/stage_native.json
+            results/processed/SHA256SUMS.csv
+            results/processed/SUMMARY.md
+            results/processed/experiment_summary.json
+            results/figures/native_*.svg
+            results/figures/native_*.png
