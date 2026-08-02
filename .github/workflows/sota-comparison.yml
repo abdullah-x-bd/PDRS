@@ -8,6 +8,7 @@ on:
       - "benchmarks/sota/run_comparison.py"
       - "benchmarks/sota/assemble.py"
       - "benchmarks/sota/BENCHMARK_PROTOCOL.md"
+      - "benchmarks/sota/bin/**"
       - "benchmarks/sota/haskell/**"
       - "requirements-sota.txt"
       - ".github/workflows/sota-comparison.yml"
@@ -17,6 +18,7 @@ on:
       - "benchmarks/sota/run_comparison.py"
       - "benchmarks/sota/assemble.py"
       - "benchmarks/sota/BENCHMARK_PROTOCOL.md"
+      - "benchmarks/sota/bin/**"
       - "benchmarks/sota/haskell/**"
       - "requirements-sota.txt"
       - ".github/workflows/sota-comparison.yml"
@@ -58,6 +60,8 @@ jobs:
           python -m pip install -e .
           python -m pip install -r requirements-experiments.txt
           python -m pip install -r requirements-sota.txt
+          chmod +x benchmarks/sota/bin/grammarinator-generate
+          echo "$GITHUB_WORKSPACE/benchmarks/sota/bin" >> "$GITHUB_PATH"
 
       - name: Generate matched schemas and grammars
         run: python benchmarks/sota/run_comparison.py prepare
