@@ -29,10 +29,6 @@ on:
 permissions:
   contents: write
 
-concurrency:
-  group: sota-comparison-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   compare:
     runs-on: ubuntu-latest
