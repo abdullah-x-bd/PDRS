@@ -1,0 +1,41 @@
+{
+  "name": "permit-record",
+  "version": "1",
+  "root": "permit_type",
+  "nodes": {
+    "permit_type": {
+      "type": "choice",
+      "field": "permit_type",
+      "branches": [
+        {"value": "research", "target": "research_district"},
+        {"value": "transit", "target": "transit_port"},
+        {"value": "experimental", "target": "experimental_lab"}
+      ]
+    },
+    "research_district": {
+      "type": "range", "field": "district", "start": 0, "stop": 11,
+      "target": "research_serial"
+    },
+    "research_serial": {
+      "type": "range", "field": "serial", "start": 0, "stop": 99,
+      "target": "end"
+    },
+    "transit_port": {
+      "type": "range", "field": "port", "start": 0, "stop": 3,
+      "target": "transit_serial"
+    },
+    "transit_serial": {
+      "type": "range", "field": "serial", "start": 0, "stop": 499,
+      "target": "end"
+    },
+    "experimental_lab": {
+      "type": "range", "field": "laboratory", "start": 0, "stop": 19,
+      "target": "experimental_serial"
+    },
+    "experimental_serial": {
+      "type": "range", "field": "serial", "start": 0, "stop": 39,
+      "target": "end"
+    },
+    "end": {"type": "terminal"}
+  }
+}

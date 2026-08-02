@@ -1,0 +1,27 @@
+name: Mathematical claim
+description: Register a theorem, lemma, definition, or counterexample.
+title: "[MATH] "
+labels: ["theory"]
+body:
+  - type: textarea
+    id: statement
+    attributes:
+      label: Formal statement
+    validations:
+      required: true
+  - type: textarea
+    id: assumptions
+    attributes:
+      label: Assumptions
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Required proof and executable evidence
+    validations:
+      required: true
+  - type: textarea
+    id: failure
+    attributes:
+      label: Counterexample conditions

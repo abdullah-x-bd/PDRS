@@ -1,0 +1,9 @@
+{
+  "experiment_id": "E003",
+  "claim_ids": ["C006"],
+  "hypothesis": "Rank-addressable generation improves valid-domain coverage and reproducibility on sparse dependent schemas.",
+  "metrics": ["valid_rate", "unique_rate", "transition_coverage", "duplicate_rate", "time_to_rare_branch"],
+  "command": "python experiments/E003_fuzzing/run.py",
+  "random_seed": 20260802,
+  "status": "preregistered"
+}

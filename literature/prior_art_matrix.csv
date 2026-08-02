@@ -1,0 +1,10 @@
+area,existing_capability,overlap_with_pdrs,remaining_research_gap,novelty_risk
+Mixed-radix systems,Different fixed radix per position,High for product domains,Path-dependent dependent-choice compilation,High
+Dynamic radix numeration,State-dependent radix based on previously read digits,Very high at foundational level,Integrated schema compiler and multi-backend evidence,Very high
+Enumerative coding,Count and rank constrained objects,Very high,General dependent schema language plus verified operational backends,High
+Abstract numeration systems,Represent integers using ordered formal languages,High,Practical compiler for finite heterogeneous records,High
+ASN.1 PER,Constraint-aware compact serialization,Medium to high,Whole-domain canonical ranking and exact uniform generation,Medium
+Protocol Buffers,Typed schema compilation and evolution,Medium,Dense constrained-domain bijection,Low to medium
+Format-preserving encryption,Permutations over structured domains,High for encryption backend,Automatic exact domain compiler and safety analysis,High
+Grammar-based fuzzing,Generate syntax-valid inputs,Medium,Uniform rank-addressable generation and non-overlapping partitions,Medium
+Dependent types,Types whose later structure depends on earlier values,High conceptually,Finite cardinality compiler and exact codec generation,Medium
