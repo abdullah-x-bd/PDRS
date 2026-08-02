@@ -53,7 +53,7 @@ jobs:
           name: sota-prepared-inputs
           path: .
           repository: abdullah-x-bd/PDRS
-          run-id: 30748438837
+          run-id: 30748939355
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/download-artifact@v4
@@ -62,7 +62,7 @@ jobs:
           path: results/sota/chunks
           merge-multiple: true
           repository: abdullah-x-bd/PDRS
-          run-id: 30748438837
+          run-id: 30748939355
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Audit downloaded comparison cells
@@ -76,7 +76,7 @@ jobs:
         run: python benchmarks/sota/assemble_chunks.py
 
       - name: Run paired statistical analysis
-        run: python benchmarks/sota/statistics.py
+        run: python benchmarks/sota/publication_statistics.py
 
       - name: Record environment and checksums
         run: python benchmarks/sota/assemble.py
