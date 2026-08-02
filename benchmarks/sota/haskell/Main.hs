@@ -60,11 +60,11 @@ instance Monad m => Serial m E16 where
     , E168, E169, E1610, E1611, E1612, E1613, E1614, E1615
     ])
 
-data Balanced = Balanced E8 E8 E8 deriving (Eq, Ord, Show)
+data Balanced = Balanced E16 E16 E8 deriving (Eq, Ord, Show)
 data Imbalanced = ISmall E2 | IMedium E4 E4 | ILarge E16 E16 | IHuge E16 E16 E8 deriving (Eq, Ord, Show)
-data Dependent = DAlpha E4 E8 | DBeta E8 E8 E4 | DGamma E2 E2 E2 E2 E2 E2 | DDelta E16 deriving (Eq, Ord, Show)
+data Dependent = DAlpha E8 E16 | DBeta E16 E16 E8 | DGamma E4 E4 E4 E4 E4 E4 | DDelta E16 deriving (Eq, Ord, Show)
 data Protocol = PPing E16 | PData E8 E16 E8 | PAck E4 E16 | PError E2 E4 deriving (Eq, Ord, Show)
-data Action = ASearch E16 E4 | ASend E8 E8 E4 | ACompute E16 E16 | AAdmin E2 E2 E2 deriving (Eq, Ord, Show)
+data Action = ASearch E16 E8 | ASend E16 E16 E8 | ACompute E16 E16 | AAdmin E4 E4 E4 deriving (Eq, Ord, Show)
 
 instance Enumerable Balanced where enumerate = F.datatype [F.c3 Balanced]
 instance Enumerable Imbalanced where enumerate = F.datatype [F.c1 ISmall, F.c2 IMedium, F.c2 ILarge, F.c3 IHuge]
@@ -85,7 +85,7 @@ mixed :: [Int] -> [Int] -> Int
 mixed widths values = foldl (\acc (w, v) -> acc * w + v) 0 (zip widths values)
 
 rankBalanced :: Balanced -> Int
-rankBalanced (Balanced a b c) = mixed [8,8,8] [ix a,ix b,ix c]
+rankBalanced (Balanced a b c) = mixed [16,16,8] [ix a,ix b,ix c]
 
 rankImbalanced :: Imbalanced -> Int
 rankImbalanced (ISmall a) = mixed [2] [ix a]
@@ -94,10 +94,10 @@ rankImbalanced (ILarge a b) = 18 + mixed [16,16] [ix a,ix b]
 rankImbalanced (IHuge a b c) = 274 + mixed [16,16,8] [ix a,ix b,ix c]
 
 rankDependent :: Dependent -> Int
-rankDependent (DAlpha a b) = mixed [4,8] [ix a,ix b]
-rankDependent (DBeta a b c) = 32 + mixed [8,8,4] [ix a,ix b,ix c]
-rankDependent (DGamma a b c d e f) = 288 + mixed [2,2,2,2,2,2] [ix a,ix b,ix c,ix d,ix e,ix f]
-rankDependent (DDelta a) = 352 + ix a
+rankDependent (DAlpha a b) = mixed [8,16] [ix a,ix b]
+rankDependent (DBeta a b c) = 128 + mixed [16,16,8] [ix a,ix b,ix c]
+rankDependent (DGamma a b c d e f) = 2176 + mixed [4,4,4,4,4,4] [ix a,ix b,ix c,ix d,ix e,ix f]
+rankDependent (DDelta a) = 6272 + ix a
 
 rankProtocol :: Protocol -> Int
 rankProtocol (PPing a) = ix a
@@ -106,10 +106,10 @@ rankProtocol (PAck a b) = 1040 + mixed [4,16] [ix a,ix b]
 rankProtocol (PError a b) = 1104 + mixed [2,4] [ix a,ix b]
 
 rankAction :: Action -> Int
-rankAction (ASearch a b) = mixed [16,4] [ix a,ix b]
-rankAction (ASend a b c) = 64 + mixed [8,8,4] [ix a,ix b,ix c]
-rankAction (ACompute a b) = 320 + mixed [16,16] [ix a,ix b]
-rankAction (AAdmin a b c) = 576 + mixed [2,2,2] [ix a,ix b,ix c]
+rankAction (ASearch a b) = mixed [16,8] [ix a,ix b]
+rankAction (ASend a b c) = 128 + mixed [16,16,8] [ix a,ix b,ix c]
+rankAction (ACompute a b) = 2176 + mixed [16,16] [ix a,ix b]
+rankAction (AAdmin a b c) = 2432 + mixed [4,4,4] [ix a,ix b,ix c]
 
 timed :: IO a -> IO (a, Integer)
 timed action = do
@@ -161,9 +161,9 @@ main = do
   case args of
     ["--out", out] -> do
       createDirectoryIfMissing True out
-      runOne out "balanced_product" 512 rankBalanced
+      runOne out "balanced_product" 2048 rankBalanced
       runOne out "imbalanced_choice" 2322 rankImbalanced
-      runOne out "dependent_record" 368 rankDependent
+      runOne out "dependent_record" 6288 rankDependent
       runOne out "protocol_message" 1112 rankProtocol
-      runOne out "action_space" 584 rankAction
+      runOne out "action_space" 2496 rankAction
     _ -> error "usage: sota-haskell --out DIRECTORY"
