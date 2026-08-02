@@ -187,6 +187,9 @@ jobs:
           PYTHONPATH: benchmarks/sota
         run: python benchmarks/sota/assemble_chunks.py
 
+      - name: Run paired statistical analysis
+        run: python benchmarks/sota/statistics.py
+
       - name: Record environment, checksums, and verify evidence
         env:
           PYTHONPATH: benchmarks/sota
