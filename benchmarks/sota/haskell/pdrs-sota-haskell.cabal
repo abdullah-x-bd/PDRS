@@ -13,5 +13,6 @@ executable sota-haskell
     , containers
     , directory
     , filepath
+    , QuickCheck ==2.18.0.0
     , smallcheck ==1.2.1.1
     , testing-feat ==1.1.1.1
