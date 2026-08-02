@@ -2,22 +2,12 @@ name: Five-baseline SOTA comparison
 
 on:
   push:
-    branches: ["agent/sota-five-way-comparison"]
+    branches: [main, "agent/sota-five-way-comparison"]
     paths:
       - "benchmarks/sota/corpus.py"
       - "benchmarks/sota/run_comparison.py"
-      - "benchmarks/sota/run_combol_campaign.py"
-      - "benchmarks/sota/assemble.py"
-      - "benchmarks/sota/BENCHMARK_PROTOCOL.md"
-      - "benchmarks/sota/bin/**"
-      - "benchmarks/sota/haskell/**"
-      - "requirements-sota.txt"
-      - ".github/workflows/sota-comparison.yml"
-  pull_request:
-    paths:
-      - "benchmarks/sota/corpus.py"
-      - "benchmarks/sota/run_comparison.py"
-      - "benchmarks/sota/run_combol_campaign.py"
+      - "benchmarks/sota/run_chunk.py"
+      - "benchmarks/sota/assemble_chunks.py"
       - "benchmarks/sota/assemble.py"
       - "benchmarks/sota/BENCHMARK_PROTOCOL.md"
       - "benchmarks/sota/bin/**"
@@ -29,10 +19,14 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: sota-comparison-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  compare:
+  prepare:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
         with:
@@ -52,14 +46,11 @@ jobs:
           ghc-version: "9.8.4"
           cabal-version: "3.12.1.0"
 
-      - name: Install Python comparison systems
+      - name: Install preparation dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e .
-          python -m pip install -r requirements-experiments.txt
-          python -m pip install -r requirements-sota.txt
-          chmod +x benchmarks/sota/bin/grammarinator-generate
-          echo "$GITHUB_WORKSPACE/benchmarks/sota/bin" >> "$GITHUB_PATH"
+          python -m pip install grammarinator==26.1
 
       - name: Generate matched schemas and grammars
         run: python benchmarks/sota/run_comparison.py prepare
@@ -79,10 +70,128 @@ jobs:
           cabal build
           cabal run sota-haskell -- --out ../../../results/sota/haskell
 
-      - name: Run full matched comparison campaign
-        run: PYTHONPATH=benchmarks/sota python benchmarks/sota/run_combol_campaign.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sota-prepared-inputs
+          retention-days: 14
+          path: |
+            results/sota/haskell
+            benchmarks/sota/corpus_manifest.json
+            benchmarks/sota/generated
+            benchmarks/sota/grammars
+            benchmarks/sota/schemas
 
-      - name: Assemble and verify evidence
+  compare:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      max-parallel: 15
+      matrix:
+        method: [pdrs, feat, smallcheck, hypothesis, grammarinator, combol]
+        domain: [balanced_product, imbalanced_choice, dependent_record, protocol_message, action_space]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install common benchmark dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          python -m pip install -r requirements-experiments.txt
+
+      - name: Install method-specific dependency
+        shell: bash
+        run: |
+          case "${{ matrix.method }}" in
+            hypothesis)
+              python -m pip install hypothesis==6.160.0
+              ;;
+            grammarinator)
+              python -m pip install grammarinator==26.1
+              ;;
+            combol)
+              python -m pip install combol==0.1.11
+              ;;
+          esac
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: sota-prepared-inputs
+          path: .
+
+      - name: Configure Grammarinator transport
+        if: matrix.method == 'grammarinator'
+        run: |
+          chmod +x benchmarks/sota/bin/grammarinator-generate
+          echo "$GITHUB_WORKSPACE/benchmarks/sota/bin" >> "$GITHUB_PATH"
+
+      - name: Run method-domain comparison chunk
+        env:
+          PYTHONPATH: benchmarks/sota
+        run: |
+          python benchmarks/sota/run_chunk.py \
+            --method "${{ matrix.method }}" \
+            --domain "${{ matrix.domain }}" \
+            --output "results/sota/chunks/${{ matrix.method }}__${{ matrix.domain }}.json"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sota-chunk-${{ matrix.method }}-${{ matrix.domain }}
+          retention-days: 14
+          path: results/sota/chunks/${{ matrix.method }}__${{ matrix.domain }}.json
+
+  assemble:
+    needs: compare
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: haskell-actions/setup@v2
+        with:
+          ghc-version: "9.8.4"
+          cabal-version: "3.12.1.0"
+
+      - name: Install evidence dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          python -m pip install -r requirements-experiments.txt
+          python -m pip install -r requirements-sota.txt
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: sota-prepared-inputs
+          path: .
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: sota-chunk-*
+          path: results/sota/chunks
+          merge-multiple: true
+
+      - name: Assemble matched campaign evidence
+        env:
+          PYTHONPATH: benchmarks/sota
+        run: python benchmarks/sota/assemble_chunks.py
+
+      - name: Record environment, checksums, and verify evidence
         run: |
           python benchmarks/sota/assemble.py
           python benchmarks/sota/run_comparison.py verify
@@ -90,6 +199,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: five-baseline-sota-evidence
+          retention-days: 30
           path: |
             results/sota
             benchmarks/sota/corpus_manifest.json
@@ -97,7 +207,7 @@ jobs:
             benchmarks/sota/schemas
 
       - name: Commit evidence to comparison branch
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/agent/sota-five-way-comparison'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
