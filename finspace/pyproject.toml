@@ -1,0 +1,107 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "finspace"
+version = "0.1.0"
+description = "Exact, rank-addressable financial scenario and protocol spaces"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [{name = "Abdullah X"}]
+keywords = [
+  "finance",
+  "quantlib",
+  "fix",
+  "iso20022",
+  "scenario-generation",
+  "testing",
+  "distributed-computing",
+  "combinatorial-testing",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Financial and Insurance Industry",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Office/Business :: Financial",
+  "Topic :: Software Development :: Testing",
+]
+dependencies = [
+  "pdrs>=0.2.0",
+  "PyYAML>=6.0.2,<7",
+]
+
+[project.optional-dependencies]
+tabular = ["numpy>=2.0,<3", "pandas>=2.2,<4"]
+arrow = ["pyarrow>=17,<24"]
+quantlib = ["QuantLib>=1.38,<2"]
+fix = ["simplefix>=1.0.17,<2"]
+iso20022 = ["lxml>=5.4,<7", "xmlschema>=4,<5"]
+all = [
+  "numpy>=2.0,<3",
+  "pandas>=2.2,<4",
+  "pyarrow>=17,<24",
+  "QuantLib>=1.38,<2",
+  "simplefix>=1.0.17,<2",
+  "lxml>=5.4,<7",
+  "xmlschema>=4,<5",
+]
+dev = [
+  "build>=1.2,<2",
+  "coverage>=7.6,<8",
+  "mypy>=1.13,<2",
+  "pytest>=8.3,<10",
+  "pytest-cov>=6,<8",
+  "ruff>=0.8,<1",
+]
+
+[project.scripts]
+finspace = "finspace.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/abdullah-x-bd/PDRS/tree/main/finspace"
+Documentation = "https://github.com/abdullah-x-bd/PDRS/tree/main/finspace/docs"
+Repository = "https://github.com/abdullah-x-bd/PDRS"
+Issues = "https://github.com/abdullah-x-bd/PDRS/issues"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+finspace = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+
+[tool.coverage.run]
+branch = true
+source = ["finspace"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 85
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unused_ignores = true
+packages = ["finspace"]

@@ -1,0 +1,1 @@
+FinSpace source is materialized by GitHub Actions from the staged archive.

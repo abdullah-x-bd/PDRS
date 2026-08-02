@@ -1,0 +1,30 @@
+name: iso20022-payment-space
+version: "1"
+description: Bounded ISO 20022 payment scenarios.
+metadata:
+  messages: pain.001.001.13 and pacs.008.001.14
+fields:
+  - name: message
+    values: [pain.001.001.13, pacs.008.001.14]
+  - name: currency
+    values: [EUR, GBP, USD]
+  - name: amount
+    values: ["0.01", "1.00", "10.00", "100.00", "1000.00", "10000.00"]
+  - name: debtor
+    values: [party_0, party_1, party_2, party_3]
+  - name: creditor
+    values: [party_0, party_1, party_2, party_3]
+  - name: day
+    values: [3, 7, 14, 21, 27]
+  - name: batch_booking
+    values: [true, false]
+    when:
+      message: [pain.001.001.13]
+  - name: charge_bearer
+    values: [SLEV, SHAR]
+    when:
+      message: [pacs.008.001.14]
+  - name: priority
+    values: [NORM, HIGH]
+    when:
+      message: [pacs.008.001.14]
