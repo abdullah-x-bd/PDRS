@@ -1,0 +1,109 @@
+{
+  "name": "telecom-control-message",
+  "version": "1",
+  "root": "message_type",
+  "nodes": {
+    "message_type": {
+      "type": "choice",
+      "field": "message_type",
+      "branches": [
+        {
+          "value": "attach",
+          "target": "attach_version"
+        },
+        {
+          "value": "data",
+          "target": "data_bearer"
+        },
+        {
+          "value": "handover",
+          "target": "handover_source"
+        },
+        {
+          "value": "emergency",
+          "target": "emergency_service"
+        }
+      ]
+    },
+    "attach_version": {
+      "type": "range",
+      "field": "version",
+      "start": 0,
+      "stop": 3,
+      "target": "attach_device"
+    },
+    "attach_device": {
+      "type": "range",
+      "field": "device_class",
+      "start": 0,
+      "stop": 15,
+      "target": "attach_security"
+    },
+    "attach_security": {
+      "type": "range",
+      "field": "security",
+      "start": 0,
+      "stop": 7,
+      "target": "end"
+    },
+    "data_bearer": {
+      "type": "range",
+      "field": "bearer",
+      "start": 0,
+      "stop": 7,
+      "target": "data_qos"
+    },
+    "data_qos": {
+      "type": "range",
+      "field": "qos",
+      "start": 0,
+      "stop": 8,
+      "target": "data_payload"
+    },
+    "data_payload": {
+      "type": "range",
+      "field": "payload_bucket",
+      "start": 0,
+      "stop": 63,
+      "target": "end"
+    },
+    "handover_source": {
+      "type": "range",
+      "field": "source_region",
+      "start": 0,
+      "stop": 5,
+      "target": "handover_target"
+    },
+    "handover_target": {
+      "type": "range",
+      "field": "target_region",
+      "start": 0,
+      "stop": 5,
+      "target": "handover_cause"
+    },
+    "handover_cause": {
+      "type": "range",
+      "field": "cause",
+      "start": 0,
+      "stop": 11,
+      "target": "end"
+    },
+    "emergency_service": {
+      "type": "range",
+      "field": "service",
+      "start": 0,
+      "stop": 3,
+      "target": "emergency_priority"
+    },
+    "emergency_priority": {
+      "type": "range",
+      "field": "priority",
+      "start": 0,
+      "stop": 2,
+      "target": "end"
+    },
+    "end": {
+      "type": "terminal"
+    }
+  }
+}

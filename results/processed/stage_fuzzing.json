@@ -1,0 +1,73 @@
+{
+  "budget": 3500,
+  "repetitions": 40,
+  "seeded_bugs": 64,
+  "pdrs_parallel_overlap": 0.0,
+  "grammar_parallel_overlap": 0.15396587847949716,
+  "summary": [
+    {
+      "method": "direct_grammar",
+      "median_validity_rate": 1.0,
+      "median_unique": 1720.0,
+      "unique_q025": 1665.975,
+      "unique_q975": 1770.15,
+      "median_duplicate": 1780.0,
+      "median_bugs_found": 8.0,
+      "bugs_q025": 4.0,
+      "bugs_q975": 11.149999999999991,
+      "median_first_bug_attempt": 188.0,
+      "first_bug_q025": 6.95,
+      "first_bug_q975": 1214.6999999999998,
+      "unique_relative_to_pdrs": 0.49142857142857144,
+      "bugs_relative_to_pdrs": 0.36363636363636365
+    },
+    {
+      "method": "mutation",
+      "median_validity_rate": 0.6501428571428571,
+      "median_unique": 777.5,
+      "unique_q025": 734.95,
+      "unique_q975": 821.05,
+      "median_duplicate": 1501.5,
+      "median_bugs_found": 2.0,
+      "bugs_q025": 0.0,
+      "bugs_q975": 6.0,
+      "median_first_bug_attempt": 754.0,
+      "first_bug_q025": 125.80000000000001,
+      "first_bug_q975": 3501.0,
+      "unique_relative_to_pdrs": 0.22214285714285714,
+      "bugs_relative_to_pdrs": 0.09090909090909091
+    },
+    {
+      "method": "naive_rejection",
+      "median_validity_rate": 0.18457142857142858,
+      "median_unique": 334.5,
+      "unique_q025": 314.95,
+      "unique_q975": 360.29999999999995,
+      "median_duplicate": 313.0,
+      "median_bugs_found": 2.0,
+      "bugs_q025": 0.0,
+      "bugs_q975": 4.0,
+      "median_first_bug_attempt": 1252.0,
+      "first_bug_q025": 17.825,
+      "first_bug_q975": 3501.0,
+      "unique_relative_to_pdrs": 0.09557142857142857,
+      "bugs_relative_to_pdrs": 0.09090909090909091
+    },
+    {
+      "method": "pdrs_without_replacement",
+      "median_validity_rate": 1.0,
+      "median_unique": 3500.0,
+      "unique_q025": 3500.0,
+      "unique_q975": 3500.0,
+      "median_duplicate": 0.0,
+      "median_bugs_found": 22.0,
+      "bugs_q025": 15.9,
+      "bugs_q975": 28.89999999999995,
+      "median_first_bug_attempt": 105.0,
+      "first_bug_q025": 1.975,
+      "first_bug_q975": 576.9499999999999,
+      "unique_relative_to_pdrs": 1.0,
+      "bugs_relative_to_pdrs": 1.0
+    }
+  ]
+}

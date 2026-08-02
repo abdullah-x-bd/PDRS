@@ -1,44 +1,300 @@
 {
-  "name": "two-year-calendar-date",
+  "name": "calendar-2024-2025",
   "version": "1",
   "root": "year",
   "nodes": {
+    "end": {
+      "type": "terminal"
+    },
+    "days_2024_1": {
+      "type": "range",
+      "field": "day",
+      "start": 1,
+      "stop": 31,
+      "target": "end"
+    },
+    "days_2024_2": {
+      "type": "range",
+      "field": "day",
+      "start": 1,
+      "stop": 29,
+      "target": "end"
+    },
+    "days_2024_3": {
+      "type": "range",
+      "field": "day",
+      "start": 1,
+      "stop": 31,
+      "target": "end"
+    },
+    "days_2024_4": {
+      "type": "range",
+      "field": "day",
+      "start": 1,
+      "stop": 30,
+      "target": "end"
+    },
+    "days_2024_5": {
+      "type": "range",
+      "field": "day",
+      "start": 1,
+      "stop": 31,
+      "target": "end"
+    },
+    "days_2024_6": {
+      "type": "range",
+      "field": "day",
+      "start": 1,
+      "stop": 30,
+      "target": "end"
+    },
+    "days_2024_7": {
+      "type": "range",
+      "field": "day",
+      "start": 1,
+      "stop": 31,
+      "target": "end"
+    },
+    "days_2024_8": {
+      "type": "range",
+      "field": "day",
+      "start": 1,
+      "stop": 31,
+      "target": "end"
+    },
+    "days_2024_9": {
+      "type": "range",
+      "field": "day",
+      "start": 1,
+      "stop": 30,
+      "target": "end"
+    },
+    "days_2024_10": {
+      "type": "range",
+      "field": "day",
+      "start": 1,
+      "stop": 31,
+      "target": "end"
+    },
+    "days_2024_11": {
+      "type": "range",
+      "field": "day",
+      "start": 1,
+      "stop": 30,
+      "target": "end"
+    },
+    "days_2024_12": {
+      "type": "range",
+      "field": "day",
+      "start": 1,
+      "stop": 31,
+      "target": "end"
+    },
+    "months_2024": {
+      "type": "choice",
+      "field": "month",
+      "branches": [
+        {
+          "value": "01",
+          "target": "days_2024_1"
+        },
+        {
+          "value": "02",
+          "target": "days_2024_2"
+        },
+        {
+          "value": "03",
+          "target": "days_2024_3"
+        },
+        {
+          "value": "04",
+          "target": "days_2024_4"
+        },
+        {
+          "value": "05",
+          "target": "days_2024_5"
+        },
+        {
+          "value": "06",
+          "target": "days_2024_6"
+        },
+        {
+          "value": "07",
+          "target": "days_2024_7"
+        },
+        {
+          "value": "08",
+          "target": "days_2024_8"
+        },
+        {
+          "value": "09",
+          "target": "days_2024_9"
+        },
+        {
+          "value": "10",
+          "target": "days_2024_10"
+        },
+        {
+          "value": "11",
+          "target": "days_2024_11"
+        },
+        {
+          "value": "12",
+          "target": "days_2024_12"
+        }
+      ]
+    },
+    "days_2025_1": {
+      "type": "range",
+      "field": "day",
+      "start": 1,
+      "stop": 31,
+      "target": "end"
+    },
+    "days_2025_2": {
+      "type": "range",
+      "field": "day",
+      "start": 1,
+      "stop": 28,
+      "target": "end"
+    },
+    "days_2025_3": {
+      "type": "range",
+      "field": "day",
+      "start": 1,
+      "stop": 31,
+      "target": "end"
+    },
+    "days_2025_4": {
+      "type": "range",
+      "field": "day",
+      "start": 1,
+      "stop": 30,
+      "target": "end"
+    },
+    "days_2025_5": {
+      "type": "range",
+      "field": "day",
+      "start": 1,
+      "stop": 31,
+      "target": "end"
+    },
+    "days_2025_6": {
+      "type": "range",
+      "field": "day",
+      "start": 1,
+      "stop": 30,
+      "target": "end"
+    },
+    "days_2025_7": {
+      "type": "range",
+      "field": "day",
+      "start": 1,
+      "stop": 31,
+      "target": "end"
+    },
+    "days_2025_8": {
+      "type": "range",
+      "field": "day",
+      "start": 1,
+      "stop": 31,
+      "target": "end"
+    },
+    "days_2025_9": {
+      "type": "range",
+      "field": "day",
+      "start": 1,
+      "stop": 30,
+      "target": "end"
+    },
+    "days_2025_10": {
+      "type": "range",
+      "field": "day",
+      "start": 1,
+      "stop": 31,
+      "target": "end"
+    },
+    "days_2025_11": {
+      "type": "range",
+      "field": "day",
+      "start": 1,
+      "stop": 30,
+      "target": "end"
+    },
+    "days_2025_12": {
+      "type": "range",
+      "field": "day",
+      "start": 1,
+      "stop": 31,
+      "target": "end"
+    },
+    "months_2025": {
+      "type": "choice",
+      "field": "month",
+      "branches": [
+        {
+          "value": "01",
+          "target": "days_2025_1"
+        },
+        {
+          "value": "02",
+          "target": "days_2025_2"
+        },
+        {
+          "value": "03",
+          "target": "days_2025_3"
+        },
+        {
+          "value": "04",
+          "target": "days_2025_4"
+        },
+        {
+          "value": "05",
+          "target": "days_2025_5"
+        },
+        {
+          "value": "06",
+          "target": "days_2025_6"
+        },
+        {
+          "value": "07",
+          "target": "days_2025_7"
+        },
+        {
+          "value": "08",
+          "target": "days_2025_8"
+        },
+        {
+          "value": "09",
+          "target": "days_2025_9"
+        },
+        {
+          "value": "10",
+          "target": "days_2025_10"
+        },
+        {
+          "value": "11",
+          "target": "days_2025_11"
+        },
+        {
+          "value": "12",
+          "target": "days_2025_12"
+        }
+      ]
+    },
     "year": {
       "type": "choice",
       "field": "year",
       "branches": [
-        {"value": "2024", "target": "month_2024"},
-        {"value": "2025", "target": "month_2025"}
+        {
+          "value": "2024",
+          "target": "months_2024"
+        },
+        {
+          "value": "2025",
+          "target": "months_2025"
+        }
       ]
-    },
-    "month_2024": {
-      "type": "choice",
-      "field": "month",
-      "branches": [
-        {"value": "01", "target": "d31"}, {"value": "02", "target": "d29"},
-        {"value": "03", "target": "d31"}, {"value": "04", "target": "d30"},
-        {"value": "05", "target": "d31"}, {"value": "06", "target": "d30"},
-        {"value": "07", "target": "d31"}, {"value": "08", "target": "d31"},
-        {"value": "09", "target": "d30"}, {"value": "10", "target": "d31"},
-        {"value": "11", "target": "d30"}, {"value": "12", "target": "d31"}
-      ]
-    },
-    "month_2025": {
-      "type": "choice",
-      "field": "month",
-      "branches": [
-        {"value": "01", "target": "d31"}, {"value": "02", "target": "d28"},
-        {"value": "03", "target": "d31"}, {"value": "04", "target": "d30"},
-        {"value": "05", "target": "d31"}, {"value": "06", "target": "d30"},
-        {"value": "07", "target": "d31"}, {"value": "08", "target": "d31"},
-        {"value": "09", "target": "d30"}, {"value": "10", "target": "d31"},
-        {"value": "11", "target": "d30"}, {"value": "12", "target": "d31"}
-      ]
-    },
-    "d28": {"type": "range", "field": "day", "start": 1, "stop": 28, "target": "end"},
-    "d29": {"type": "range", "field": "day", "start": 1, "stop": 29, "target": "end"},
-    "d30": {"type": "range", "field": "day", "start": 1, "stop": 30, "target": "end"},
-    "d31": {"type": "range", "field": "day", "start": 1, "stop": 31, "target": "end"},
-    "end": {"type": "terminal"}
+    }
   }
 }

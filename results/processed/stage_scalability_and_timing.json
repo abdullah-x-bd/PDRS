@@ -1,0 +1,9 @@
+{
+  "resource_attacks_rejected": 4,
+  "resource_attacks": 4,
+  "rank_branch_index_correlation": 0.25553050616425044,
+  "rank_branch_index_p": 3.513033746510012e-05,
+  "unrank_branch_index_correlation": -0.2590768775756625,
+  "unrank_branch_index_p": 2.7068693256498454e-05,
+  "constant_time_claim": false
+}

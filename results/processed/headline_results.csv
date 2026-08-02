@@ -1,0 +1,20 @@
+metric,value,unit
+Objects checked with zero rank/unrank failures,254609,objects
+Generated schemas exhaustively checked,1000,schemas
+Median PDRS saving versus protobuf wire baseline,41.0,bits/object
+Median PDRS saving versus UPER subset,1.0,bits/object
+Median rank latency,1.2148961666666667,microseconds
+Maximum uniformity total variation,0.01059044899606498,fraction
+Minimum uniformity chi-square p-value,0.1775530578050101,p-value
+PDRS unique valid objects per 3500 attempts,3500.0,objects
+Direct grammar unique valid objects per 3500 attempts,1720.0,objects
+Naive rejection valid rate,0.18457142857142858,fraction
+PDRS median seeded bugs found,22.0,bugs
+Direct grammar median seeded bugs found,8.0,bugs
+PDRS parallel overlap,0.0,fraction
+Direct grammar parallel overlap,0.15396587847949716,fraction
+Maximum schema-evolution rank churn,1.0,fraction
+Median raw-rank valid corruption rate,0.9279487179487179,fraction
+Resource attacks rejected,4,of 4
+Domain permutation failures,0,failures
+Mean domain-permutation avalanche,0.4781412830290327,fraction

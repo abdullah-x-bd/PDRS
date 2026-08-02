@@ -10,19 +10,20 @@ permissions:
   contents: read
 
 jobs:
-  deterministic-results:
+  committed-evidence-integrity:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Regenerate deterministic benchmark
-        run: python scripts/run_benchmarks.py --output /tmp/baseline_density.csv
-      - name: Check committed result
-        run: diff -u results/baseline_density.csv /tmp/baseline_density.csv
-      - name: Upload generated result
+      - name: Verify committed checksums and critical invariants
+        run: python scripts/verify_evidence.py
+      - name: Upload processed evidence manifest
         uses: actions/upload-artifact@v4
         with:
-          name: baseline-density
-          path: /tmp/baseline_density.csv
+          name: pdrs-evidence-manifest
+          path: |
+            results/processed/SHA256SUMS.csv
+            results/processed/experiment_summary.json
+            results/processed/SUMMARY.md

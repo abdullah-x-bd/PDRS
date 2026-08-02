@@ -1,0 +1,8 @@
+{
+  "python": "3.12.13",
+  "platform": "Linux-6.17.0-1020-azure-x86_64-with-glibc2.39",
+  "processor": "x86_64",
+  "machine": "x86_64",
+  "cpu_count": 4,
+  "timestamp_utc": "2026-08-02T09:47:33Z"
+}

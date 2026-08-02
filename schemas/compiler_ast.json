@@ -1,0 +1,163 @@
+{
+  "name": "bounded-expression-ast",
+  "version": "1",
+  "root": "expression_type",
+  "nodes": {
+    "expression_type": {
+      "type": "choice",
+      "field": "expression_type",
+      "branches": [
+        {
+          "value": "literal",
+          "target": "literal_kind"
+        },
+        {
+          "value": "variable",
+          "target": "variable_id"
+        },
+        {
+          "value": "unary",
+          "target": "unary_op"
+        },
+        {
+          "value": "binary",
+          "target": "binary_op"
+        },
+        {
+          "value": "call",
+          "target": "call_function"
+        }
+      ]
+    },
+    "literal_kind": {
+      "type": "choice",
+      "field": "literal_kind",
+      "branches": [
+        {
+          "value": "int",
+          "target": "literal_int"
+        },
+        {
+          "value": "bool",
+          "target": "literal_bool"
+        },
+        {
+          "value": "string",
+          "target": "literal_string"
+        }
+      ]
+    },
+    "literal_int": {
+      "type": "range",
+      "field": "value",
+      "start": 0,
+      "stop": 255,
+      "target": "end"
+    },
+    "literal_bool": {
+      "type": "range",
+      "field": "value",
+      "start": 0,
+      "stop": 1,
+      "target": "end"
+    },
+    "literal_string": {
+      "type": "range",
+      "field": "atom",
+      "start": 0,
+      "stop": 31,
+      "target": "end"
+    },
+    "variable_id": {
+      "type": "range",
+      "field": "identifier",
+      "start": 0,
+      "stop": 127,
+      "target": "end"
+    },
+    "unary_op": {
+      "type": "range",
+      "field": "operator",
+      "start": 0,
+      "stop": 3,
+      "target": "unary_operand"
+    },
+    "unary_operand": {
+      "type": "range",
+      "field": "operand_class",
+      "start": 0,
+      "stop": 5,
+      "target": "end"
+    },
+    "binary_op": {
+      "type": "range",
+      "field": "operator",
+      "start": 0,
+      "stop": 11,
+      "target": "binary_left"
+    },
+    "binary_left": {
+      "type": "range",
+      "field": "left_class",
+      "start": 0,
+      "stop": 5,
+      "target": "binary_right"
+    },
+    "binary_right": {
+      "type": "range",
+      "field": "right_class",
+      "start": 0,
+      "stop": 5,
+      "target": "end"
+    },
+    "call_function": {
+      "type": "range",
+      "field": "function",
+      "start": 0,
+      "stop": 31,
+      "target": "call_arity"
+    },
+    "call_arity": {
+      "type": "choice",
+      "field": "arity",
+      "branches": [
+        {
+          "value": "zero",
+          "target": "end"
+        },
+        {
+          "value": "one",
+          "target": "call_arg0_one"
+        },
+        {
+          "value": "two",
+          "target": "call_arg0_two"
+        }
+      ]
+    },
+    "call_arg0_one": {
+      "type": "range",
+      "field": "arg0",
+      "start": 0,
+      "stop": 63,
+      "target": "end"
+    },
+    "call_arg0_two": {
+      "type": "range",
+      "field": "arg0",
+      "start": 0,
+      "stop": 63,
+      "target": "call_arg1_two"
+    },
+    "call_arg1_two": {
+      "type": "range",
+      "field": "arg1",
+      "start": 0,
+      "stop": 63,
+      "target": "end"
+    },
+    "end": {
+      "type": "terminal"
+    }
+  }
+}

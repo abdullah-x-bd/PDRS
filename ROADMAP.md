@@ -1,69 +1,34 @@
-# Research roadmap
+# Evidence roadmap
 
-## M0: Scope and prior art
+## Completed in v0.2
 
-- [x] Establish terminology and nonclaims
-- [x] Create source registry and prior-art matrix
-- [x] Define claim-evidence ledger
-- [ ] Complete systematic literature review
-- [ ] Obtain independent novelty review
+- [x] Finite acyclic PDRS formal model
+- [x] Complete conventional proofs of finite cardinality, interval partitioning, rank bounds, mutual inverses, uniform sampling, disjoint partitions, complexity, evolution counterexample, and permutation composition
+- [x] Independent executable theorem model checker
+- [x] Iterative DAG validator and exact counter
+- [x] Canonical rank, unrank, trace, enumeration, partition, and rank-byte codec
+- [x] Explicit resource limits
+- [x] Seven-schema realistic corpus
+- [x] One-thousand-schema generated correctness corpus
+- [x] Density comparison
+- [x] Runtime and scaling comparison
+- [x] Statistical uniformity study
+- [x] Comparative structured fuzzing study
+- [x] Parallel overlap study
+- [x] Schema evolution rank-churn study
+- [x] Fault-propagation study
+- [x] Resource exhaustion tests
+- [x] Branch timing study
+- [x] Structured-domain permutation and authentication experiment
+- [x] Raw data, processed tables, committed SVG figures and generated PNG copies, environment metadata, and checksums
+- [x] CI-sized reproducibility workflow
 
-## M1: Mathematical foundation
+## Intentionally outside this evidence release
 
-- [x] Define finite acyclic path-dependent radix schemas
-- [x] Implement exact subtree counting
-- [x] Implement canonical rank and unrank
-- [x] State bijection and uniform-sampling theorems
-- [x] Exhaustively test small domains
-- [ ] Produce machine-checked proof of the core bijection
-- [ ] Characterize finite-state successor and addition
-
-## M2: Reference compiler
-
-- [x] JSON schema format
-- [x] Python reference implementation
-- [x] Command-line interface
-- [x] Canonical schema digest
-- [ ] Bounded lists and optional fields as first-class syntax
-- [ ] DAG sharing and compiler optimization
-- [ ] Rust implementation
-- [ ] Generated codecs
-
-## M3: Benchmark corpus
-
-- [x] Permit schema
-- [x] Calendar schema
-- [x] AI action schema
-- [x] Synthetic fixed-radix generator
-- [ ] Telecom protocol corpus
-- [ ] Compiler AST corpus
-- [ ] Administrative code corpus
-
-## M4: Comparative evidence
-
-- [x] Deterministic density benchmark
-- [ ] Runtime benchmark with controlled hardware
-- [ ] ASN.1 PER baseline
-- [ ] Protocol Buffers baseline
-- [ ] Rejection-sampling baseline
-- [ ] Grammar-fuzzer baseline
-- [ ] Statistical uniformity study
-
-## M5: Red team
-
-- [x] Initial threat and assumption registry
-- [x] Cycle, ambiguity, and malformed-schema tests
-- [ ] State-explosion benchmark
-- [ ] Rank-churn experiment
-- [ ] Fault-propagation experiment
-- [ ] Side-channel analysis
-- [ ] Independent reviewer challenge set
-
-## M6: Paper
-
-- [x] Manuscript skeleton
-- [x] Evaluation plan
-- [ ] Complete related work
-- [ ] Complete formal results
-- [ ] Complete experiments
-- [ ] Freeze artifact and draft paper
+- paper drafting and venue formatting
+- systematic literature review and independent novelty review
+- proof-assistant formalization in Lean, Coq, or Isabelle
+- arbitrary user predicates and cyclic finite languages
+- Rust production implementation
+- deployment-grade cryptographic standardization
+- independent external replication on additional hardware

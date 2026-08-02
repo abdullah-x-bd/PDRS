@@ -1,0 +1,22 @@
+{
+  "version": "0.2.0",
+  "seed": 20260802,
+  "schema_class": "finite acyclic choice/range/terminal DAGs",
+  "stages": [
+    "correctness",
+    "density",
+    "runtime",
+    "uniformity",
+    "fuzzing",
+    "schema_evolution",
+    "fault_propagation",
+    "scalability_and_timing",
+    "crypto_adapter"
+  ],
+  "full_command": "make evidence-full",
+  "ci_command": "make evidence-quick",
+  "proof_command": "make proof",
+  "verification_command": "make verify",
+  "runtime_results_environment_dependent": true,
+  "cryptography_deployment_claim": false
+}

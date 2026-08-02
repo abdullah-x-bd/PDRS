@@ -1,0 +1,73 @@
+{
+  "mutations": 6,
+  "minimum_churn": 0.0,
+  "maximum_churn": 1.0,
+  "rows": [
+    {
+      "mutation": "append_root_branch",
+      "base_domain": 4000,
+      "new_domain": 4050,
+      "common_objects": 4000,
+      "moved_objects": 0,
+      "churn_fraction": 0.0,
+      "mean_absolute_displacement": 0,
+      "max_absolute_displacement": 0,
+      "median_displacement": 0.0
+    },
+    {
+      "mutation": "insert_root_branch_first",
+      "base_domain": 4000,
+      "new_domain": 4050,
+      "common_objects": 4000,
+      "moved_objects": 4000,
+      "churn_fraction": 1.0,
+      "mean_absolute_displacement": 50,
+      "max_absolute_displacement": 50,
+      "median_displacement": 50.0
+    },
+    {
+      "mutation": "reverse_root_order",
+      "base_domain": 4000,
+      "new_domain": 4000,
+      "common_objects": 4000,
+      "moved_objects": 4000,
+      "churn_fraction": 1.0,
+      "mean_absolute_displacement": 1680,
+      "max_absolute_displacement": 3200,
+      "median_displacement": -400.0
+    },
+    {
+      "mutation": "expand_first_branch_range",
+      "base_domain": 4000,
+      "new_domain": 4600,
+      "common_objects": 4000,
+      "moved_objects": 3900,
+      "churn_fraction": 0.975,
+      "mean_absolute_displacement": 502.5,
+      "max_absolute_displacement": 600,
+      "median_displacement": 600.0
+    },
+    {
+      "mutation": "expand_last_branch_range",
+      "base_domain": 4000,
+      "new_domain": 4800,
+      "common_objects": 4000,
+      "moved_objects": 760,
+      "churn_fraction": 0.19,
+      "mean_absolute_displacement": 76,
+      "max_absolute_displacement": 760,
+      "median_displacement": 0.0
+    },
+    {
+      "mutation": "remove_last_branch",
+      "base_domain": 4000,
+      "new_domain": 3200,
+      "common_objects": 3200,
+      "moved_objects": 0,
+      "churn_fraction": 0.0,
+      "mean_absolute_displacement": 0,
+      "max_absolute_displacement": 0,
+      "median_displacement": 0.0
+    }
+  ]
+}

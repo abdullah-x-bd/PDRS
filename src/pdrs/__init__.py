@@ -1,6 +1,6 @@
 """Path-Dependent Radix Spaces reference implementation."""
 
-from .core import CompiledSchema, SchemaError, load_schema
+from .core import CompiledSchema, SchemaError, SchemaLimits, load_schema
 
-__all__ = ["CompiledSchema", "SchemaError", "load_schema"]
-__version__ = "0.1.0"
+__all__ = ["CompiledSchema", "SchemaError", "SchemaLimits", "load_schema"]
+__version__ = "0.2.0"

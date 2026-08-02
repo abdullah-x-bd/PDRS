@@ -1,0 +1,6 @@
+{
+  "schemas": 5,
+  "samples_per_schema": 150000,
+  "max_total_variation": 0.01059044899606498,
+  "minimum_p_value": 0.1775530578050101
+}

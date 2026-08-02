@@ -1,5 +1,5 @@
 {
-  "name": "tool-calling-actions",
+  "name": "ai-tool-actions",
   "version": "1",
   "root": "tool",
   "nodes": {
@@ -7,44 +7,147 @@
       "type": "choice",
       "field": "tool",
       "branches": [
-        {"value": "search", "target": "search_scope"},
-        {"value": "calendar", "target": "calendar_action"},
-        {"value": "email", "target": "email_action"}
+        {
+          "value": "search",
+          "target": "search_scope"
+        },
+        {
+          "value": "calendar",
+          "target": "calendar_action"
+        },
+        {
+          "value": "email",
+          "target": "email_action"
+        },
+        {
+          "value": "database",
+          "target": "database_table"
+        }
       ]
     },
     "search_scope": {
-      "type": "choice", "field": "scope",
+      "type": "choice",
+      "field": "scope",
       "branches": [
-        {"value": "web", "target": "search_depth"},
-        {"value": "files", "target": "search_depth"}
+        {
+          "value": "web",
+          "target": "search_depth"
+        },
+        {
+          "value": "files",
+          "target": "search_depth"
+        },
+        {
+          "value": "repository",
+          "target": "search_depth"
+        }
       ]
     },
-    "search_depth": {"type": "range", "field": "depth", "start": 1, "stop": 5, "target": "end"},
+    "search_depth": {
+      "type": "range",
+      "field": "depth",
+      "start": 1,
+      "stop": 5,
+      "target": "end"
+    },
     "calendar_action": {
-      "type": "choice", "field": "action",
+      "type": "choice",
+      "field": "action",
       "branches": [
-        {"value": "read", "target": "calendar_window"},
-        {"value": "create", "target": "calendar_window"},
-        {"value": "update", "target": "calendar_window"}
+        {
+          "value": "read",
+          "target": "calendar_window"
+        },
+        {
+          "value": "create",
+          "target": "calendar_duration"
+        },
+        {
+          "value": "update",
+          "target": "calendar_duration"
+        }
       ]
     },
-    "calendar_window": {"type": "range", "field": "window", "start": 0, "stop": 6, "target": "end"},
+    "calendar_window": {
+      "type": "range",
+      "field": "days",
+      "start": 1,
+      "stop": 7,
+      "target": "end"
+    },
+    "calendar_duration": {
+      "type": "range",
+      "field": "duration_bucket",
+      "start": 0,
+      "stop": 5,
+      "target": "end"
+    },
     "email_action": {
-      "type": "choice", "field": "action",
+      "type": "choice",
+      "field": "action",
       "branches": [
-        {"value": "read", "target": "mailbox"},
-        {"value": "draft", "target": "mailbox"},
-        {"value": "send", "target": "mailbox"},
-        {"value": "archive", "target": "mailbox"}
+        {
+          "value": "search",
+          "target": "email_limit"
+        },
+        {
+          "value": "draft",
+          "target": "email_tone"
+        },
+        {
+          "value": "send",
+          "target": "email_recipient_count"
+        }
       ]
     },
-    "mailbox": {
-      "type": "choice", "field": "mailbox",
+    "email_limit": {
+      "type": "range",
+      "field": "limit",
+      "start": 1,
+      "stop": 10,
+      "target": "end"
+    },
+    "email_tone": {
+      "type": "range",
+      "field": "tone",
+      "start": 0,
+      "stop": 3,
+      "target": "end"
+    },
+    "email_recipient_count": {
+      "type": "range",
+      "field": "recipients",
+      "start": 1,
+      "stop": 5,
+      "target": "end"
+    },
+    "database_table": {
+      "type": "range",
+      "field": "table",
+      "start": 0,
+      "stop": 7,
+      "target": "database_operation"
+    },
+    "database_operation": {
+      "type": "choice",
+      "field": "operation",
       "branches": [
-        {"value": "primary", "target": "end"},
-        {"value": "shared", "target": "end"}
+        {
+          "value": "read",
+          "target": "end"
+        },
+        {
+          "value": "insert",
+          "target": "end"
+        },
+        {
+          "value": "update",
+          "target": "end"
+        }
       ]
     },
-    "end": {"type": "terminal"}
+    "end": {
+      "type": "terminal"
+    }
   }
 }
