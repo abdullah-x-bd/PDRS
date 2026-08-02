@@ -188,9 +188,22 @@ jobs:
         run: python benchmarks/sota/assemble_chunks.py
 
       - name: Record environment, checksums, and verify evidence
+        env:
+          PYTHONPATH: benchmarks/sota
         run: |
           python benchmarks/sota/assemble.py
-          python benchmarks/sota/run_comparison.py verify
+          python - <<'PY'
+          import run_comparison as rc
+          rc.METHODS = (
+              "pdrs",
+              "feat",
+              "smallcheck",
+              "hypothesis",
+              "grammarinator",
+              "quickcheck",
+          )
+          rc.verify()
+          PY
 
       - uses: actions/upload-artifact@v4
         with:
