@@ -26,7 +26,7 @@ jobs:
       - name: CLI smoke test
         run: |
           test "$(PYTHONPATH=src python -m pdrs.cli count schemas/permit.json)" = "4000"
-          test "$(PYTHONPATH=src python -m pdrs.cli rank schemas/permit.json '[\"experimental\", 7, 13]')" = "3493"
+          test "$(PYTHONPATH=src python -m pdrs.cli rank schemas/permit.json '["experimental", 7, 13]')" = "3493"
           test "$(PYTHONPATH=src python -m pdrs.cli unrank schemas/permit.json 3493)" = '["experimental", 7, 13]'
       - name: Validate research assets
         run: python scripts/check_research_assets.py
