@@ -1,0 +1,104 @@
+name: Real-program finance evaluation
+
+on:
+  pull_request:
+    paths:
+      - "benchmarks/real_program/**"
+      - "src/pdrs/**"
+      - ".github/workflows/real-program-evaluation.yml"
+  push:
+    branches: [main, "agent/**"]
+    paths:
+      - "benchmarks/real_program/**"
+      - "src/pdrs/**"
+      - ".github/workflows/real-program-evaluation.yml"
+  workflow_dispatch:
+    inputs:
+      quick:
+        description: "Use the reduced smoke-test budgets"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install PDRS and real-program dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          python -m pip install -r benchmarks/real_program/requirements.txt
+      - name: Download current official ISO 20022 schemas
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p benchmarks/real_program/vendor downloads
+          download_xsd() {
+            local url="$1"
+            local wanted="$2"
+            local temp="downloads/$(basename "$wanted").download"
+            curl --fail --location --retry 3 --silent --show-error "$url" --output "$temp"
+            if python - "$temp" <<'PY'
+          import pathlib, sys
+          raise SystemExit(0 if pathlib.Path(sys.argv[1]).read_bytes()[:2] == b'PK' else 1)
+          PY
+            then
+              mkdir -p downloads/unpacked
+              unzip -oq "$temp" -d downloads/unpacked
+              found=$(find downloads/unpacked -type f -name "$(basename "$wanted")" | head -1)
+              if [ -z "$found" ]; then
+                echo "Could not find $(basename "$wanted") in ISO download" >&2
+                find downloads/unpacked -type f -maxdepth 5 >&2
+                exit 1
+              fi
+              cp "$found" "$wanted"
+            else
+              cp "$temp" "$wanted"
+            fi
+            python - "$wanted" <<'PY'
+          from lxml import etree
+          import pathlib, sys
+          path = pathlib.Path(sys.argv[1])
+          etree.parse(str(path))
+          print(path, path.stat().st_size)
+          PY
+          }
+          download_xsd "https://www.iso20022.org/message/23503/download" "benchmarks/real_program/vendor/pain.001.001.13.xsd"
+          rm -rf downloads/unpacked
+          download_xsd "https://www.iso20022.org/message/23500/download" "benchmarks/real_program/vendor/pacs.008.001.14.xsd"
+          sha256sum benchmarks/real_program/vendor/*.xsd | tee benchmarks/real_program/vendor/SHA256SUMS.txt
+          cat > benchmarks/real_program/vendor/SOURCES.json <<'JSON'
+          {
+            "pain.001.001.13": "https://www.iso20022.org/message/23503/download",
+            "pacs.008.001.14": "https://www.iso20022.org/message/23500/download",
+            "retrieved_by": "GitHub Actions real-program evaluation"
+          }
+          JSON
+      - name: Run PDRS unit tests
+        run: PYTHONPATH=src python -m unittest discover -s tests -v
+      - name: Run all three real-program evaluations
+        shell: bash
+        run: |
+          args=()
+          if [ "${{ inputs.quick || false }}" = "true" ]; then args+=(--quick); fi
+          PYTHONPATH=src python -m benchmarks.real_program.run_all \
+            --xsd-dir benchmarks/real_program/vendor "${args[@]}"
+      - name: Upload complete real-program evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: real-program-finance-evidence
+          path: |
+            results/real_program
+            benchmarks/real_program/vendor/SOURCES.json
+            benchmarks/real_program/vendor/SHA256SUMS.txt
+          retention-days: 90
