@@ -4,12 +4,20 @@ on:
   push:
     branches: ["agent/sota-five-way-comparison"]
     paths:
-      - "benchmarks/sota/**"
+      - "benchmarks/sota/corpus.py"
+      - "benchmarks/sota/run_comparison.py"
+      - "benchmarks/sota/assemble.py"
+      - "benchmarks/sota/BENCHMARK_PROTOCOL.md"
+      - "benchmarks/sota/haskell/**"
       - "requirements-sota.txt"
       - ".github/workflows/sota-comparison.yml"
   pull_request:
     paths:
-      - "benchmarks/sota/**"
+      - "benchmarks/sota/corpus.py"
+      - "benchmarks/sota/run_comparison.py"
+      - "benchmarks/sota/assemble.py"
+      - "benchmarks/sota/BENCHMARK_PROTOCOL.md"
+      - "benchmarks/sota/haskell/**"
       - "requirements-sota.txt"
       - ".github/workflows/sota-comparison.yml"
   workflow_dispatch:
