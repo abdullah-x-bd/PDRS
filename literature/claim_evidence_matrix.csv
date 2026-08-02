@@ -1,9 +1,15 @@
 claim_id,claim,type,supporting_artifact,strength,status
-C001,Every committed schema has a finite positive domain,mathematical+executable,theory/theorems.md;tests/test_core.py,proof sketch+tests,verified for current model
-C002,Rank and unrank are mutual inverses on the current schema class,mathematical+executable,theory/theorems.md;tests/test_core.py;tests/test_generated_schemas.py,proof sketch+exhaustive tests,verified for current implementation
-C003,Sampling a uniform rank yields a uniform valid object,mathematical,theory/theorems.md,corollary of bijection,verified mathematically pending statistical study
-C004,Dependent schemas can use fewer fixed bits than naive field allocation,empirical,experiments/E002_density;results/baseline_density.csv,deterministic benchmark,verified on benchmark corpus
-C005,Whole-domain ranks are unstable under schema evolution,analytical,red_team/threat_model.md,reasoned counterexample,pending quantified experiment
-C006,PDRS can improve structured fuzzing coverage over rejection sampling,empirical,experiments/E003_fuzzing,preregistered experiment,pending
-C007,PDRS can safely serve as a domain compiler for established FPE,cryptographic composition,experiments/E004_crypto,design claim,pending proof and implementation
-C008,The foundational dynamic-radix idea is not novel,literature,literature/prior_art_matrix.csv,prior-art evidence,verified at high level
+C001,Every accepted schema has a finite positive domain,mathematical+executable,theory/proofs.md;tests/test_core.py,complete proof+tests,verified for declared model
+C002,Rank and unrank are mutual inverses,mathematical+executable,theory/proofs.md;scripts/verify_theorems.py;results/processed/theorem_verification.json,complete proof+independent exhaustive model checking,verified
+C003,Uniform rank sampling gives uniform valid objects,mathematical+empirical,theory/proofs.md;results/raw/uniformity.csv,proof+750000 samples,verified
+C004,PDRS reaches ceil(log2 N) fixed-width density,mathematical+empirical,theory/proofs.md;results/raw/density_static.csv,definition+seven-schema corpus,verified
+C005,PDRS can save space against local field packing on imbalanced domains,empirical,results/raw/density_static.csv;results/raw/density_imbalance.csv;results/figures/density_imbalance.svg,controlled corpus,verified with stated baselines
+C006,Rank-addressable generation can produce valid nonrepeating fuzz inputs,mathematical+empirical,theory/proofs.md;results/raw/fuzzing_runs.csv,proof+40 repetitions,verified
+C007,Rank partitions have zero overlap,mathematical+empirical,theory/proofs.md;results/raw/fuzzing_parallel_overlap.csv,proof+40 repetitions,verified
+C008,Dense ranks are unstable under arbitrary schema evolution,mathematical+empirical,theory/proofs.md;results/raw/schema_evolution.csv,counterexample+six mutations,verified
+C009,Raw dense ranks have weak intrinsic error detection,empirical,results/raw/fault_propagation.csv;red_team/RESULTS.md,seven-schema fault injection,verified
+C010,Configured resource limits reject declared exhaustion attacks,executable,results/raw/resource_limits.csv;tests/test_core.py,four attack classes,verified
+C011,Python reference implementation is not constant time,empirical,results/raw/timing_branch_index.csv;red_team/RESULTS.md,branch timing study,verified negative result
+C012,Conjugating a finite-domain permutation through rank/unrank preserves the schema domain,mathematical+executable,theory/proofs.md;results/raw/crypto_permutation.csv,proof+four-domain evaluation,verified invertibility only
+C013,The included crypto adapter is deployment ready,cryptographic,red_team/RESULTS.md,explicit nonclaim,rejected
+C014,The foundational dynamic-radix idea is novel,literature,literature/prior_art_matrix.csv,prior-art evidence,rejected
