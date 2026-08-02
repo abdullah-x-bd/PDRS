@@ -20,6 +20,7 @@ ORDER = [
     "fault_propagation",
     "scalability_and_timing",
     "crypto_adapter",
+    "native",
 ]
 
 
@@ -45,17 +46,28 @@ def main() -> None:
         "",
     ]
     for name in ORDER:
-        lines.extend([f"## {name.replace('_', ' ').title()}", "", "```json", json.dumps(summary[name], indent=2), "```", ""])
+        lines.extend(
+            [
+                f"## {name.replace('_', ' ').title()}",
+                "",
+                "```json",
+                json.dumps(summary[name], indent=2),
+                "```",
+                "",
+            ]
+        )
     (PROCESSED / "SUMMARY.md").write_text("\n".join(lines), encoding="utf-8")
 
     rows: list[dict[str, str]] = []
     for directory in [RAW, PROCESSED, FIGURES]:
         for path in sorted(directory.glob("*")):
             if path.is_file() and path.name != "SHA256SUMS.csv":
-                rows.append({
-                    "path": str(path.relative_to(ROOT)),
-                    "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
-                })
+                rows.append(
+                    {
+                        "path": str(path.relative_to(ROOT)),
+                        "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                    }
+                )
     write_csv(PROCESSED / "SHA256SUMS.csv", rows)
 
 

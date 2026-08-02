@@ -27,22 +27,32 @@ def main() -> None:
         "correctness failures": summary["correctness"]["failures"] == 0,
         "permutation failures": summary["crypto_adapter"]["permutation_failures"] == 0,
         "tamper detection": summary["crypto_adapter"]["minimum_tamper_detection"] == 1.0,
-        "resource rejection": summary["scalability_and_timing"]["resource_attacks_rejected"] == summary["scalability_and_timing"]["resource_attacks"],
+        "resource rejection": summary["scalability_and_timing"]["resource_attacks_rejected"]
+        == summary["scalability_and_timing"]["resource_attacks"],
         "partition overlap": summary["fuzzing"]["pdrs_parallel_overlap"] == 0.0,
         "uniformity p-value": summary["uniformity"]["minimum_p_value"] > 0.01,
+        "native conformance": summary["native"]["conformance_failures"] == 0,
+        "native languages": set(summary["native"]["languages"]) == {"python", "c", "rust"},
+        "native round trips": summary["native"]["native_exhaustive_roundtrips"] > 0,
     }
     failures.extend(name for name, passed in assertions.items() if not passed)
 
     pngs = sorted((ROOT / "results" / "figures").glob("*.png"))
     svgs = sorted((ROOT / "results" / "figures").glob("*.svg"))
-    if len(svgs) != 11:
-        failures.append(f"expected 11 committed SVG figures, found {len(svgs)}")
-    if len(pngs) not in (0, 11):
-        failures.append(f"expected either 0 or 11 generated PNG figures, found {len(pngs)}")
+    expected_figures = 14
+    if len(svgs) != expected_figures:
+        failures.append(f"expected {expected_figures} committed SVG figures, found {len(svgs)}")
+    if len(pngs) not in (0, expected_figures):
+        failures.append(
+            f"expected either 0 or {expected_figures} generated PNG figures, found {len(pngs)}"
+        )
 
     if failures:
         raise SystemExit("Evidence verification failed:\n- " + "\n- ".join(failures))
-    print(f"Verified {len(rows)} evidence files, {len(svgs)} committed SVG figures, and all critical invariants.")
+    print(
+        f"Verified {len(rows)} evidence files, {len(svgs)} committed SVG figures, "
+        "and all critical invariants including C and Rust conformance."
+    )
 
 
 if __name__ == "__main__":

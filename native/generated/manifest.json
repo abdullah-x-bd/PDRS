@@ -1,0 +1,72 @@
+[
+  {
+    "schema": "administrative",
+    "name": "administrative-service-code",
+    "count": 40568,
+    "depth": 4,
+    "canonical_hash": "bff0f0c3abec5a801fa76f0725c78c9f71083ed40bdfae745357eabe12c91c3f",
+    "ir": "native/generated/irs/administrative.pdrs",
+    "ranks": "native/generated/ranks/administrative.txt",
+    "vector_count": 2048
+  },
+  {
+    "schema": "ai_actions",
+    "name": "ai-tool-actions",
+    "count": 77,
+    "depth": 3,
+    "canonical_hash": "0f9faf94789682934ce8df8b2cb988448997e868e9f3240d876889d094d566fc",
+    "ir": "native/generated/irs/ai_actions.pdrs",
+    "ranks": "native/generated/ranks/ai_actions.txt",
+    "vector_count": 77
+  },
+  {
+    "schema": "calendar",
+    "name": "calendar-2024-2025",
+    "count": 731,
+    "depth": 3,
+    "canonical_hash": "f57d8074cfd33794cbf81c131088544a7110915d5ea0f67f79ff7ecf5c88d496",
+    "ir": "native/generated/irs/calendar.pdrs",
+    "ranks": "native/generated/ranks/calendar.txt",
+    "vector_count": 731
+  },
+  {
+    "schema": "compiler_ast",
+    "name": "bounded-expression-ast",
+    "count": 134026,
+    "depth": 5,
+    "canonical_hash": "f65fec6aa7ae2f72c76deee0c689b55e2a6501137faf5c4590c8423f310ce09c",
+    "ir": "native/generated/irs/compiler_ast.pdrs",
+    "ranks": "native/generated/ranks/compiler_ast.txt",
+    "vector_count": 2048
+  },
+  {
+    "schema": "fuzz_target",
+    "name": "fuzz-target-domain",
+    "count": 9911,
+    "depth": 3,
+    "canonical_hash": "ef8351dc82318e923ab7cdc7d573abfb4ccbfc5c237b5cd1b7740734e7c35b95",
+    "ir": "native/generated/irs/fuzz_target.pdrs",
+    "ranks": "native/generated/ranks/fuzz_target.txt",
+    "vector_count": 2048
+  },
+  {
+    "schema": "permit",
+    "name": "permit-record",
+    "count": 4000,
+    "depth": 3,
+    "canonical_hash": "2eb0ee4b02c3d56c5ec6f8b485afa86c5226489a3b1e212ff2a97735994077d6",
+    "ir": "native/generated/irs/permit.pdrs",
+    "ranks": "native/generated/ranks/permit.txt",
+    "vector_count": 2048
+  },
+  {
+    "schema": "telecom",
+    "name": "telecom-control-message",
+    "count": 5564,
+    "depth": 4,
+    "canonical_hash": "d783d4f3afd11a3dccd2a5b78c1d4ee3a31244edb90a85549c4178ec3982df1b",
+    "ir": "native/generated/irs/telecom.pdrs",
+    "ranks": "native/generated/ranks/telecom.txt",
+    "vector_count": 2048
+  }
+]

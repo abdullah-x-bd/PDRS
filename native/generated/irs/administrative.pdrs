@@ -1,0 +1,21 @@
+PDRS_IR_V1
+name	administrative-service-code
+version	1
+root	country
+node	C	country	country	5	india	india_state	belgium	belgium_region	uae	uae_emirate	singapore	singapore_district	brazil	brazil_state
+node	R	india_state	state	0	35	india_district
+node	R	india_district	district	0	49	india_office
+node	R	india_office	office	0	7	end
+node	R	belgium_region	region	0	2	belgium_province
+node	R	belgium_province	province	0	9	belgium_commune
+node	R	belgium_commune	commune	0	19	end
+node	R	uae_emirate	emirate	0	6	uae_authority
+node	R	uae_authority	authority	0	11	uae_service
+node	R	uae_service	service	0	31	end
+node	R	singapore_district	district	0	4	singapore_agency
+node	R	singapore_agency	agency	0	15	singapore_service
+node	R	singapore_service	service	0	15	end
+node	R	brazil_state	state	0	26	brazil_municipality
+node	R	brazil_municipality	municipality_bucket	0	99	brazil_service
+node	R	brazil_service	service	0	7	end
+node	T	end

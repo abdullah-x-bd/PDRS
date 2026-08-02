@@ -1,0 +1,17 @@
+PDRS_IR_V1
+name	ai-tool-actions
+version	1
+root	tool
+node	C	tool	tool	4	search	search_scope	calendar	calendar_action	email	email_action	database	database_table
+node	C	search_scope	scope	3	web	search_depth	files	search_depth	repository	search_depth
+node	R	search_depth	depth	1	5	end
+node	C	calendar_action	action	3	read	calendar_window	create	calendar_duration	update	calendar_duration
+node	R	calendar_window	days	1	7	end
+node	R	calendar_duration	duration_bucket	0	5	end
+node	C	email_action	action	3	search	email_limit	draft	email_tone	send	email_recipient_count
+node	R	email_limit	limit	1	10	end
+node	R	email_tone	tone	0	3	end
+node	R	email_recipient_count	recipients	1	5	end
+node	R	database_table	table	0	7	database_operation
+node	C	database_operation	operation	3	read	end	insert	end	update	end
+node	T	end
