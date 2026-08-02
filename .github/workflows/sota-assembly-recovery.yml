@@ -12,7 +12,7 @@ on:
 
 permissions:
   actions: read
-  contents: read
+  contents: write
 
 concurrency:
   group: sota-assembly-recovery-${{ github.ref }}
@@ -101,3 +101,29 @@ jobs:
             benchmarks/sota/corpus_manifest.json
             benchmarks/sota/grammars
             benchmarks/sota/schemas
+
+      - name: Commit verified evidence to branch
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          BRANCH: agent/sota-five-way-comparison
+        run: |
+          tar -czf /tmp/sota-evidence.tgz \
+            results/sota \
+            benchmarks/sota/corpus_manifest.json \
+            benchmarks/sota/grammars \
+            benchmarks/sota/schemas
+          git fetch origin "$BRANCH"
+          git checkout -B "$BRANCH" "origin/$BRANCH"
+          tar -xzf /tmp/sota-evidence.tgz
+          git add results/sota \
+            benchmarks/sota/corpus_manifest.json \
+            benchmarks/sota/grammars \
+            benchmarks/sota/schemas
+          if git diff --cached --quiet; then
+            echo "Evidence already materialized."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Add verified state-of-the-art comparison evidence"
+          git push origin "HEAD:$BRANCH"
