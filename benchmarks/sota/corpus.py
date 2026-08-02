@@ -73,7 +73,7 @@ class Domain:
             "field": "branch",
             "branches": branches,
         }
-        return {"name": self.name, "version": "sota-1", "root": "root", "nodes": nodes}
+        return {"name": self.name, "version": "sota-2", "root": "root", "nodes": nodes}
 
     def branch_of_rank(self, rank: int) -> int:
         return self.unrank(rank)[0]
@@ -97,12 +97,14 @@ class Domain:
         return {rank for rank in result if 0 <= rank < self.count}
 
 
+# Every domain deliberately contains more than 1,000 objects, so the reported
+# 100, 500, and 1,000-case budgets are all distinct and directly comparable.
 DOMAINS: tuple[Domain, ...] = (
-    Domain("balanced_product", ((8, 8, 8),)),
-    Domain("imbalanced_choice", ((2,), (4, 4), (16, 16), (16, 16, 8))),
-    Domain("dependent_record", ((4, 8), (8, 8, 4), (2, 2, 2, 2, 2, 2), (16,))),
-    Domain("protocol_message", ((16,), (8, 16, 8), (4, 16), (2, 4))),
-    Domain("action_space", ((16, 4), (8, 8, 4), (16, 16), (2, 2, 2))),
+    Domain("balanced_product", ((16, 16, 8),)),                       # 2,048
+    Domain("imbalanced_choice", ((2,), (4, 4), (16, 16), (16, 16, 8))),  # 2,322
+    Domain("dependent_record", ((8, 16), (16, 16, 8), (4, 4, 4, 4, 4, 4), (16,))),  # 6,288
+    Domain("protocol_message", ((16,), (8, 16, 8), (4, 16), (2, 4))),  # 1,112
+    Domain("action_space", ((16, 8), (16, 16, 8), (16, 16), (4, 4, 4))),  # 2,496
 )
 
 BY_NAME = {domain.name: domain for domain in DOMAINS}
