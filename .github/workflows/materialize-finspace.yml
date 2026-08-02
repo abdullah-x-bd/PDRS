@@ -1,0 +1,116 @@
+name: Materialize FinSpace package
+
+on:
+  push:
+    branches: ["agent/finspace-package"]
+    paths:
+      - ".finspace-bootstrap/**"
+      - ".github/workflows/materialize-finspace.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/finspace-package
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Decode and extract package source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f .finspace-bootstrap/chunk00
+          cat .finspace-bootstrap/chunk[0-9][0-9] | base64 --decode > /tmp/finspace-package.tar.gz
+          gzip -t /tmp/finspace-package.tar.gz
+          tar -tzf /tmp/finspace-package.tar.gz | sed -n '1,240p'
+          tar -xzf /tmp/finspace-package.tar.gz -C .
+          find . -maxdepth 5 -type f | sort | sed -n '1,320p'
+      - name: Locate FinSpace distribution
+        id: locate
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f finspace/pyproject.toml ]; then
+            package_dir=finspace
+          elif [ -f packages/finspace/pyproject.toml ]; then
+            package_dir=packages/finspace
+          elif [ -f finspace-package/pyproject.toml ]; then
+            package_dir=finspace-package
+          else
+            package_dir=$(find . -mindepth 2 -maxdepth 5 -name pyproject.toml -print | grep -i finspace | head -1 | xargs dirname)
+          fi
+          test -n "$package_dir"
+          test -f "$package_dir/pyproject.toml"
+          echo "package_dir=$package_dir" >> "$GITHUB_OUTPUT"
+          echo "FinSpace distribution: $package_dir"
+          sed -n '1,240p' "$package_dir/pyproject.toml"
+      - name: Install package and test dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_dir='${{ steps.locate.outputs.package_dir }}'
+          python -m pip install --upgrade pip build pytest pytest-cov
+          python -m pip install -e "$package_dir[dev,finance]" \
+            || python -m pip install -e "$package_dir[dev]" \
+            || python -m pip install -e "$package_dir"
+      - name: Run complete FinSpace tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_dir='${{ steps.locate.outputs.package_dir }}'
+          if [ -d "$package_dir/tests" ]; then
+            python -m pytest -q "$package_dir/tests"
+          else
+            python -m pytest -q "$package_dir"
+          fi
+      - name: Run import, CLI, and example smoke tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_dir='${{ steps.locate.outputs.package_dir }}'
+          python - <<'PY'
+          import finspace
+          print("FinSpace imported from", finspace.__file__)
+          print("Version", getattr(finspace, "__version__", "unknown"))
+          PY
+          finspace --help
+          if [ -d "$package_dir/examples" ]; then
+            for example in "$package_dir"/examples/*.py; do
+              [ -f "$example" ] || continue
+              echo "Running $example"
+              python "$example"
+            done
+          fi
+      - name: Build wheel and source distribution
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_dir='${{ steps.locate.outputs.package_dir }}'
+          python -m build "$package_dir"
+          python -m pip install --force-reinstall "$package_dir"/dist/*.whl
+          python - <<'PY'
+          import finspace
+          print("Installed wheel import succeeded", finspace.__file__)
+          PY
+          rm -rf "$package_dir/dist" "$package_dir"/*.egg-info "$package_dir/src"/*.egg-info
+      - name: Remove bootstrap transport and commit source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .finspace-bootstrap
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git status --short
+          git diff --cached --quiet && exit 0
+          git commit -m "Add complete installable FinSpace package"
+          git push origin HEAD:agent/finspace-package
