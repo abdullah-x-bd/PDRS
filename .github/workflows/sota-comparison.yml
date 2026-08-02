@@ -1,11 +1,6 @@
 name: Five-baseline SOTA comparison
 
 on:
-  pull_request:
-    paths:
-      - "benchmarks/sota/**"
-      - "requirements-sota.txt"
-      - ".github/workflows/sota-comparison.yml"
   push:
     branches: [main]
     paths:
@@ -18,7 +13,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: sota-comparison-${{ github.event.pull_request.number || github.ref }}
+  group: sota-comparison-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
