@@ -1,16 +1,9 @@
 metric,value,unit
 Objects checked with zero rank/unrank failures,254609,objects
 Generated schemas exhaustively checked,1000,schemas
-Native exhaustive C and Rust round trips,389754,round trips
-Cross-language Python C Rust vectors,22096,vectors
-Native conformance failures,0,failures
 Median PDRS saving versus protobuf wire baseline,41.0,bits/object
 Median PDRS saving versus UPER subset,1.0,bits/object
-Median Python rank latency,1.2148961666666667,microseconds
-Median C rank speedup versus Python,51.64456601972664,x
-Median Rust rank speedup versus Python,63.36141945260678,x
-Median C unrank speedup versus Python,135.1796452862052,x
-Median Rust unrank speedup versus Python,38.553862128713995,x
+Median rank latency,1.2148961666666667,microseconds
 Maximum uniformity total variation,0.01059044899606498,fraction
 Minimum uniformity chi-square p-value,0.1775530578050101,p-value
 PDRS unique valid objects per 3500 attempts,3500.0,objects
