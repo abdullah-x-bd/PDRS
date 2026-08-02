@@ -30,8 +30,8 @@ The committed evidence covers:
 - Rust formatting, Clippy with warnings denied, and optimized release compilation
 - encoding density against local UPER-style packing, protobuf wire format, JSON, and naive fixed fields
 - controlled Python, C, and Rust runtime measurements
-- median native rank speedups of 51.6x for C and 63.4x for Rust relative to Python on the recorded GitHub runner
-- median native unrank speedups of 135.2x for C and 38.6x for Rust relative to Python on the recorded GitHub runner
+- median native rank speedups of 49.4x for C and 62.7x for Rust relative to Python in the committed GitHub-runner dataset
+- median native unrank speedups of 136.5x for C and 38.8x for Rust relative to Python in the committed GitHub-runner dataset
 - 750,000 uniformity samples
 - 560 comparative fuzzing runs
 - 6 schema evolution mutations
