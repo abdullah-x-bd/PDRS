@@ -3,53 +3,38 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-import random
 import time
-
-import numpy as np
 
 import run_comparison as rc
 from corpus import DOMAINS
 from pdrs import CompiledSchema
 
+SCORED_METHODS = (
+    "pdrs",
+    "feat",
+    "smallcheck",
+    "hypothesis",
+    "grammarinator",
+    "quickcheck",
+)
 
-def configure_combol(domain) -> None:
-    """Configure one unit-weight CombOL sampler for this domain job."""
-    import combol
-    from combol.context import Context
 
-    original = Context._translate_str_params
-
-    def translate(self: Context, params: dict[str, float]):
-        normalized = {
-            key: 1.0
-            for key in params
-            if key in self.variable_key_map
-        }
-        return original(self, normalized)
-
-    Context._translate_str_params = translate
-    specification, parameters = rc.combol_spec(domain)
-    cls = combol.parse(specification)
-    sampler = cls.sampler(parameters)
-
-    def cached_sequence(
-        requested_domain,
-        budget: int,
-        seed_value: int,
-    ) -> tuple[list[int], float]:
-        if requested_domain.name != domain.name:
-            raise AssertionError("CombOL sampler reused for the wrong domain")
-        random.seed(seed_value)
-        np.random.seed(seed_value % (2**32))
-        start = time.perf_counter()
-        ranks = [
-            rc.parse_combol(domain, sampler.sample())
-            for _ in range(budget)
-        ]
-        return ranks, time.perf_counter() - start
-
-    rc.combol_sequence = cached_sequence
+def load_quickcheck(domain, repetition: int) -> tuple[list[int], float]:
+    path = rc.HASKELL_RESULTS / f"quickcheck_{domain.name}_{repetition}.txt"
+    lines = path.read_text(encoding="utf-8").splitlines()
+    elapsed_picoseconds = 0
+    values: list[int] = []
+    for line in lines:
+        if line.startswith("#elapsed_picoseconds="):
+            elapsed_picoseconds = int(line.split("=", 1)[1])
+        elif line and not line.startswith("#"):
+            values.append(int(line))
+    if len(values) != 1000:
+        raise AssertionError(
+            f"QuickCheck produced {len(values)} values for "
+            f"{domain.name} repetition {repetition}, expected 1000"
+        )
+    return values, elapsed_picoseconds / 1e12
 
 
 def exact_row(method: str, domain) -> dict | None:
@@ -79,8 +64,6 @@ def exact_row(method: str, domain) -> dict | None:
 def run_chunk(method: str, domain_name: str, output: Path) -> None:
     rc.ensure_dirs()
     domain = next(domain for domain in DOMAINS if domain.name == domain_name)
-    if method == "combol":
-        configure_combol(domain)
 
     feat_all, _ = rc.load_haskell("feat", domain)
     small_all, _ = rc.load_haskell("smallcheck", domain)
@@ -89,18 +72,17 @@ def run_chunk(method: str, domain_name: str, output: Path) -> None:
     maximum_budget = max(min(value, domain.count) for value in rc.BUDGETS)
 
     for repetition in range(rc.REPETITIONS):
-        seed_value = rc.SEED + repetition * 1009 + domain.count
-        if method == "combol":
-            random.seed(seed_value)
-            np.random.seed(seed_value % (2**32))
-        full_sequence, elapsed = rc.method_sequence(
-            method,
-            domain,
-            maximum_budget,
-            repetition,
-            feat_all,
-            small_all,
-        )
+        if method == "quickcheck":
+            full_sequence, elapsed = load_quickcheck(domain, repetition)
+        else:
+            full_sequence, elapsed = rc.method_sequence(
+                method,
+                domain,
+                maximum_budget,
+                repetition,
+                feat_all,
+                small_all,
+            )
         if len(full_sequence) != maximum_budget:
             raise AssertionError(
                 f"{method}/{domain.name} produced {len(full_sequence)} values, "
@@ -150,7 +132,7 @@ def run_chunk(method: str, domain_name: str, output: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--method", required=True, choices=rc.METHODS)
+    parser.add_argument("--method", required=True, choices=SCORED_METHODS)
     parser.add_argument(
         "--domain",
         required=True,
