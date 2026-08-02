@@ -47,6 +47,8 @@ jobs:
           path = Path("native/rust/src/main.rs")
           source = path.read_text(encoding="utf-8")
           replacements = {
+              '    Choice { name: String, field: String, branches: Vec<(String, String)> },': '    Choice { name: String, branches: Vec<(String, String)> },',
+              '    Range { name: String, field: String, start: i64, stop: i64, target: String },': '    Range { name: String, start: i64, stop: i64, target: String },',
               '''enum Node {
               Terminal { name: String },
               Choice { name: String, field: String, branches: Vec<(String, usize)> },
@@ -58,6 +60,7 @@ jobs:
           }''',
               '    version: String,\n': '',
               '    let version = version.ok_or_else(|| "missing schema version".to_string())?;': '    let _version = version.ok_or_else(|| "missing schema version".to_string())?;',
+              '                            field: parts[3].to_string(),\n': '',
               '            RawNode::Terminal { name } => Node::Terminal { name },': '            RawNode::Terminal { .. } => Node::Terminal,',
               '            RawNode::Choice { name, field, branches } => {': '            RawNode::Choice { branches, .. } => {',
               '                Node::Choice { name, field, branches: resolved }': '                Node::Choice { branches: resolved }',
@@ -72,8 +75,6 @@ jobs:
               if old not in source:
                   raise SystemExit(f"expected Rust source fragment missing: {old!r}")
               source = source.replace(old, new)
-          # The generic Node rewrites also occur as substrings inside RawNode.
-          # Restore the three RawNode patterns explicitly.
           source = source.replace(
               'RawNode::Terminal => Node::Terminal,',
               'RawNode::Terminal { .. } => Node::Terminal,',
