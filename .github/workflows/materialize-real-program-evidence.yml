@@ -1,0 +1,48 @@
+name: Materialize real-program evidence
+
+on:
+  push:
+    branches: ["agent/real-program-finance-evaluation"]
+    paths:
+      - ".github/workflows/materialize-real-program-evidence.yml"
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/real-program-finance-evaluation
+          fetch-depth: 0
+      - name: Download the verified evidence artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          rm -rf /tmp/real-program-evidence
+          mkdir -p /tmp/real-program-evidence
+          gh run download 30751501907 \
+            --repo abdullah-x-bd/PDRS \
+            --name real-program-finance-evidence \
+            --dir /tmp/real-program-evidence
+          test -f /tmp/real-program-evidence/results/real_program/processed/real_program_summary.json
+          test -f /tmp/real-program-evidence/results/real_program/processed/SHA256SUMS.csv
+      - name: Copy evidence into the repository
+        run: |
+          rm -rf results/real_program
+          mkdir -p results/real_program/provenance
+          cp -a /tmp/real-program-evidence/results/real_program/. results/real_program/
+          cp /tmp/real-program-evidence/benchmarks/real_program/vendor/SOURCES.json results/real_program/provenance/
+          cp /tmp/real-program-evidence/benchmarks/real_program/vendor/SHA256SUMS.txt results/real_program/provenance/XSD_SHA256SUMS.txt
+          cp /tmp/real-program-evidence/downloads/xsd-provenance.tsv results/real_program/provenance/
+      - name: Commit immutable evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add results/real_program
+          git diff --cached --quiet && exit 0
+          git commit -m "Add verified real-program finance evidence"
+          git push origin HEAD:agent/real-program-finance-evaluation
