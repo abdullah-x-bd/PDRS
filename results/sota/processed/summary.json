@@ -1,0 +1,102 @@
+{
+  "methods": {
+    "pdrs": {
+      "median_unique_rate": 1.0,
+      "median_validity_rate": 1.0,
+      "median_branch_tv": 0.0030461538461538373,
+      "median_worker_overlap": 0.0,
+      "median_pipeline_objects_per_s": 153254.519601146,
+      "uniform_bug_median": 7.0,
+      "rare_bug_median": 2.0,
+      "boundary_bug_median": 6.0,
+      "exact_complete_domains": 5,
+      "exact_domains_tested": 5
+    },
+    "feat": {
+      "median_unique_rate": 1.0,
+      "median_validity_rate": 1.0,
+      "median_branch_tv": 0.0026982773471145687,
+      "median_worker_overlap": 0.0,
+      "median_pipeline_objects_per_s": 1507947.680262778,
+      "uniform_bug_median": 6.0,
+      "rare_bug_median": 2.0,
+      "boundary_bug_median": 6.0,
+      "exact_complete_domains": 5,
+      "exact_domains_tested": 5
+    },
+    "smallcheck": {
+      "median_unique_rate": 1.0,
+      "median_validity_rate": 1.0,
+      "median_branch_tv": 0.2685128205128205,
+      "median_worker_overlap": 0.0,
+      "median_pipeline_objects_per_s": 242371181.9854467,
+      "uniform_bug_median": 5.0,
+      "rare_bug_median": 12.0,
+      "boundary_bug_median": 32.0,
+      "exact_complete_domains": 5,
+      "exact_domains_tested": 5
+    },
+    "hypothesis": {
+      "median_unique_rate": 1.0,
+      "median_validity_rate": 1.0,
+      "median_branch_tv": 0.15599827734711458,
+      "median_worker_overlap": 0.4525,
+      "median_pipeline_objects_per_s": 449.8517132322255,
+      "uniform_bug_median": 5.0,
+      "rare_bug_median": 8.0,
+      "boundary_bug_median": 22.0,
+      "exact_complete_domains": 0,
+      "exact_domains_tested": 0
+    },
+    "grammarinator": {
+      "median_unique_rate": 1.0,
+      "median_validity_rate": 1.0,
+      "median_branch_tv": 0.2499128205128205,
+      "median_worker_overlap": 0.373,
+      "median_pipeline_objects_per_s": 626.2822727586524,
+      "uniform_bug_median": 5.0,
+      "rare_bug_median": 8.0,
+      "boundary_bug_median": 17.0,
+      "exact_complete_domains": 0,
+      "exact_domains_tested": 0
+    },
+    "quickcheck": {
+      "median_unique_rate": 0.668,
+      "median_validity_rate": 1.0,
+      "median_branch_tv": 0.5716628205128206,
+      "median_worker_overlap": 0.2932330827067669,
+      "median_pipeline_objects_per_s": 2515606.2658031015,
+      "uniform_bug_median": 3.0,
+      "rare_bug_median": 8.0,
+      "boundary_bug_median": 12.0,
+      "exact_complete_domains": 0,
+      "exact_domains_tested": 0
+    }
+  },
+  "domains": [
+    "balanced_product",
+    "imbalanced_choice",
+    "dependent_record",
+    "protocol_message",
+    "action_space"
+  ],
+  "scored_methods": [
+    "pdrs",
+    "feat",
+    "smallcheck",
+    "hypothesis",
+    "grammarinator",
+    "quickcheck"
+  ],
+  "matched_run_rows": 1800,
+  "attempted_unscored_baselines": [
+    {
+      "method": "combol",
+      "version": "0.1.11",
+      "scored": false,
+      "reason": "The native CombOL/Symbolica sampler repeatedly caused GitHub-hosted runners to receive external shutdown signals across multiple independent matched-domain jobs before producing a chunk. No performance or quality score is inferred from this operational failure.",
+      "workflow_run": 30747455997,
+      "failed_cells_observed": 4
+    }
+  ]
+}

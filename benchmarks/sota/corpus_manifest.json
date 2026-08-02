@@ -1,0 +1,59 @@
+[
+  {
+    "name": "balanced_product",
+    "count": 2048,
+    "branch_sizes": [
+      2048
+    ],
+    "max_fields": 3,
+    "grammar": "BalancedProduct"
+  },
+  {
+    "name": "imbalanced_choice",
+    "count": 2322,
+    "branch_sizes": [
+      2,
+      16,
+      256,
+      2048
+    ],
+    "max_fields": 3,
+    "grammar": "ImbalancedChoice"
+  },
+  {
+    "name": "dependent_record",
+    "count": 6288,
+    "branch_sizes": [
+      128,
+      2048,
+      4096,
+      16
+    ],
+    "max_fields": 6,
+    "grammar": "DependentRecord"
+  },
+  {
+    "name": "protocol_message",
+    "count": 1112,
+    "branch_sizes": [
+      16,
+      1024,
+      64,
+      8
+    ],
+    "max_fields": 3,
+    "grammar": "ProtocolMessage"
+  },
+  {
+    "name": "action_space",
+    "count": 2496,
+    "branch_sizes": [
+      128,
+      2048,
+      256,
+      64
+    ],
+    "max_fields": 3,
+    "grammar": "ActionSpace"
+  }
+]

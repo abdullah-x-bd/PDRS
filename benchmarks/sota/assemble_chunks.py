@@ -1,0 +1,269 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+import statistics
+
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import numpy as np
+
+import run_comparison as rc
+from corpus import DOMAINS
+
+ROOT = Path(__file__).resolve().parents[2]
+CHUNKS = ROOT / "results" / "sota" / "chunks"
+SCORED_METHODS = (
+    "pdrs",
+    "feat",
+    "smallcheck",
+    "hypothesis",
+    "grammarinator",
+    "quickcheck",
+)
+DISPLAY = {
+    "pdrs": "PDRS",
+    "feat": "Feat",
+    "smallcheck": "SmallCheck",
+    "hypothesis": "Hypothesis",
+    "grammarinator": "Grammarinator",
+    "quickcheck": "QuickCheck",
+}
+
+CAPABILITIES = [
+    {"method": "pdrs", "exact_enumeration": True, "random_access": True, "uniform_objects": True, "without_replacement": True, "coordinated_partition": True, "shrinking": False, "recursive_unbounded": False},
+    {"method": "feat", "exact_enumeration": True, "random_access": True, "uniform_objects": True, "without_replacement": True, "coordinated_partition": True, "shrinking": False, "recursive_unbounded": True},
+    {"method": "smallcheck", "exact_enumeration": True, "random_access": False, "uniform_objects": False, "without_replacement": True, "coordinated_partition": True, "shrinking": False, "recursive_unbounded": True},
+    {"method": "hypothesis", "exact_enumeration": False, "random_access": False, "uniform_objects": False, "without_replacement": False, "coordinated_partition": False, "shrinking": True, "recursive_unbounded": True},
+    {"method": "grammarinator", "exact_enumeration": False, "random_access": False, "uniform_objects": False, "without_replacement": True, "coordinated_partition": False, "shrinking": False, "recursive_unbounded": True},
+    {"method": "quickcheck", "exact_enumeration": False, "random_access": False, "uniform_objects": False, "without_replacement": False, "coordinated_partition": False, "shrinking": True, "recursive_unbounded": True},
+]
+
+ATTEMPTED_BASELINES = [
+    {
+        "method": "combol",
+        "version": "0.1.11",
+        "scored": False,
+        "reason": "The native CombOL/Symbolica sampler repeatedly caused GitHub-hosted runners to receive external shutdown signals across multiple independent matched-domain jobs before producing a chunk. No performance or quality score is inferred from this operational failure.",
+        "workflow_run": 30747455997,
+        "failed_cells_observed": 4,
+    }
+]
+
+
+def save_figure(name: str) -> None:
+    plt.tight_layout()
+    plt.savefig(rc.FIGURES / f"{name}.svg")
+    plt.savefig(rc.FIGURES / f"{name}.png", dpi=180)
+    plt.close()
+
+
+def plot(rows: list[dict], uniformity: list[dict], overlaps: list[dict], exact: list[dict]) -> None:
+    labels = list(SCORED_METHODS)
+    x = np.arange(len(labels))
+    max_budget_rows: list[list[dict]] = []
+    for method in labels:
+        subset = []
+        for domain in DOMAINS:
+            budget = min(max(rc.BUDGETS), domain.count)
+            subset.extend(
+                row
+                for row in rows
+                if row["method"] == method
+                and row["domain"] == domain.name
+                and row["budget"] == budget
+            )
+        max_budget_rows.append(subset)
+
+    def bar_metric(filename: str, title: str, ylabel: str, key: str) -> None:
+        medians = [statistics.median(float(row[key]) for row in subset) for subset in max_budget_rows]
+        plt.figure(figsize=(10, 5))
+        plt.bar(x, medians)
+        plt.xticks(x, [DISPLAY[label] for label in labels], rotation=20)
+        plt.ylabel(ylabel)
+        plt.title(title)
+        save_figure(filename)
+
+    bar_metric(
+        "unique_rate",
+        "Unique valid output rate at maximum matched budget",
+        "Unique rate",
+        "unique_rate",
+    )
+    bar_metric(
+        "uniform_bug_discovery",
+        "Uniformly located bugs reached",
+        "Distinct bugs",
+        "uniform_bugs",
+    )
+    bar_metric(
+        "rare_bug_discovery",
+        "Rare-branch bugs reached",
+        "Distinct bugs",
+        "rare_branch_bugs",
+    )
+    bar_metric(
+        "boundary_bug_discovery",
+        "Boundary bugs reached",
+        "Distinct bugs",
+        "boundary_bugs",
+    )
+
+    branch_tv = [
+        statistics.median(
+            float(row["branch_total_variation"])
+            for row in uniformity
+            if row["method"] == method
+        )
+        for method in labels
+    ]
+    plt.figure(figsize=(10, 5))
+    plt.bar(x, branch_tv)
+    plt.xticks(x, [DISPLAY[label] for label in labels], rotation=20)
+    plt.ylabel("Median branch total variation")
+    plt.title("Deviation from object-uniform branch probabilities")
+    save_figure("uniformity_branch_tv")
+
+    overlap_values = [
+        statistics.median(
+            float(row["overlap_fraction"])
+            for row in overlaps
+            if row["method"] == method
+        )
+        for method in labels
+    ]
+    plt.figure(figsize=(10, 5))
+    plt.bar(x, overlap_values)
+    plt.xticks(x, [DISPLAY[label] for label in labels], rotation=20)
+    plt.ylabel("Median overlap fraction")
+    plt.title("Four-worker duplicate overlap")
+    save_figure("worker_overlap")
+
+    exact_methods = ["pdrs", "feat", "smallcheck"]
+    exact_speed = [
+        statistics.median(
+            float(row["objects_per_s"])
+            for row in exact
+            if row["method"] == method
+        )
+        for method in exact_methods
+    ]
+    plt.figure(figsize=(8, 5))
+    plt.bar(np.arange(len(exact_methods)), exact_speed)
+    plt.xticks(
+        np.arange(len(exact_methods)),
+        [DISPLAY[method] for method in exact_methods],
+    )
+    plt.ylabel("Median objects per second")
+    plt.title("Complete finite-domain enumeration throughput")
+    save_figure("exact_enumeration")
+
+
+def assemble() -> None:
+    rc.ensure_dirs()
+    rc.METHODS = SCORED_METHODS
+    expected = {
+        (method, domain.name)
+        for method in SCORED_METHODS
+        for domain in DOMAINS
+    }
+    payloads: dict[tuple[str, str], dict] = {}
+    for path in sorted(CHUNKS.glob("*.json")):
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        key = (payload["method"], payload["domain"])
+        if key in payloads:
+            raise AssertionError(f"duplicate comparison chunk {key}")
+        payloads[key] = payload
+    missing = expected - set(payloads)
+    unexpected = set(payloads) - expected
+    if missing or unexpected:
+        raise AssertionError(
+            f"comparison chunk mismatch missing={sorted(missing)} "
+            f"unexpected={sorted(unexpected)}"
+        )
+
+    rows: list[dict] = []
+    exact: list[dict] = []
+    sequences: dict[tuple[str, str, int, int], list[int]] = {}
+    for method, domain_name in sorted(expected):
+        payload = payloads[(method, domain_name)]
+        domain = next(domain for domain in DOMAINS if domain.name == domain_name)
+        expected_rows = len(rc.BUDGETS) * rc.REPETITIONS
+        if len(payload["rows"]) != expected_rows:
+            raise AssertionError(
+                f"{method}/{domain_name} has {len(payload['rows'])} rows, "
+                f"expected {expected_rows}"
+            )
+        rows.extend(payload["rows"])
+        if payload["exact"] is not None:
+            exact.append(payload["exact"])
+        for requested_budget in rc.BUDGETS:
+            budget = min(requested_budget, domain.count)
+            for repetition in range(rc.REPETITIONS):
+                sequence_key = f"{budget}:{repetition}"
+                try:
+                    sequence = payload["sequences"][sequence_key]
+                except KeyError as exc:
+                    raise AssertionError(
+                        f"missing sequence {method}/{domain_name}/{sequence_key}"
+                    ) from exc
+                sequences[(method, domain_name, budget, repetition)] = sequence
+
+    expected_run_rows = (
+        len(SCORED_METHODS)
+        * len(DOMAINS)
+        * len(rc.BUDGETS)
+        * rc.REPETITIONS
+    )
+    if len(rows) != expected_run_rows:
+        raise AssertionError(
+            f"assembled {len(rows)} run rows, expected {expected_run_rows}"
+        )
+    if any(float(row["validity_rate"]) != 1.0 for row in rows):
+        raise AssertionError("a comparison system emitted an invalid object")
+
+    rc.write_csv(rc.RAW / "generation_runs.csv", rows)
+    rc.write_csv(rc.RAW / "exact_enumeration.csv", exact)
+    uniformity = rc.aggregate_uniformity(sequences)
+    rc.write_csv(rc.RAW / "uniformity.csv", uniformity)
+    overlaps = rc.worker_overlap(sequences)
+    rc.write_csv(rc.RAW / "worker_overlap.csv", overlaps)
+    summary = rc.summarize(rows, uniformity, overlaps, exact)
+    summary["scored_methods"] = list(SCORED_METHODS)
+    summary["matched_run_rows"] = expected_run_rows
+    summary["attempted_unscored_baselines"] = ATTEMPTED_BASELINES
+    (rc.PROCESSED / "summary.json").write_text(
+        json.dumps(summary, indent=2, allow_nan=True) + "\n",
+        encoding="utf-8",
+    )
+    rc.write_csv(rc.PROCESSED / "capabilities.csv", CAPABILITIES)
+    rc.write_csv(rc.PROCESSED / "attempted_baselines.csv", ATTEMPTED_BASELINES)
+    plot(rows, uniformity, overlaps, exact)
+
+    audit_rows = []
+    for (method, domain), payload in sorted(payloads.items()):
+        audit_rows.append(
+            {
+                "method": method,
+                "domain": domain,
+                "domain_size": payload["domain_size"],
+                "run_rows": len(payload["rows"]),
+                "stored_sequences": len(payload["sequences"]),
+                "stored_samples": sum(
+                    len(sequence)
+                    for sequence in payload["sequences"].values()
+                ),
+                "exact_evidence": payload["exact"] is not None,
+            }
+        )
+    rc.write_csv(rc.PROCESSED / "chunk_audit.csv", audit_rows)
+    print(json.dumps(summary, indent=2, allow_nan=True))
+    print(
+        f"assembled {len(payloads)} chunks, {len(rows)} matched runs, "
+        f"{len(exact)} exact-enumeration rows"
+    )
+
+
+if __name__ == "__main__":
+    assemble()

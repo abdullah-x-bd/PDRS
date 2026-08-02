@@ -1,0 +1,7 @@
+method,exact_enumeration,random_access,uniform_objects,without_replacement,coordinated_partition,shrinking,recursive_unbounded
+pdrs,True,True,True,True,True,False,False
+feat,True,True,True,True,True,False,True
+smallcheck,True,False,False,True,True,False,True
+hypothesis,False,False,False,False,False,True,True
+grammarinator,False,False,False,True,False,False,True
+quickcheck,False,False,False,False,False,True,True

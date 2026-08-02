@@ -1,0 +1,2 @@
+method,version,scored,reason,workflow_run,failed_cells_observed
+combol,0.1.11,False,The native CombOL/Symbolica sampler repeatedly caused GitHub-hosted runners to receive external shutdown signals across multiple independent matched-domain jobs before producing a chunk. No performance or quality score is inferred from this operational failure.,30747455997,4

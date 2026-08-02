@@ -1,0 +1,41 @@
+{
+  "name": "balanced_product",
+  "version": "sota-2",
+  "root": "root",
+  "nodes": {
+    "end": {
+      "type": "terminal"
+    },
+    "b0_f0": {
+      "type": "range",
+      "field": "field_0",
+      "start": 0,
+      "stop": 15,
+      "target": "b0_f1"
+    },
+    "b0_f1": {
+      "type": "range",
+      "field": "field_1",
+      "start": 0,
+      "stop": 15,
+      "target": "b0_f2"
+    },
+    "b0_f2": {
+      "type": "range",
+      "field": "field_2",
+      "start": 0,
+      "stop": 7,
+      "target": "end"
+    },
+    "root": {
+      "type": "choice",
+      "field": "branch",
+      "branches": [
+        {
+          "value": "b0",
+          "target": "b0_f0"
+        }
+      ]
+    }
+  }
+}

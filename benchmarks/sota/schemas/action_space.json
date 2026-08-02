@@ -1,0 +1,102 @@
+{
+  "name": "action_space",
+  "version": "sota-2",
+  "root": "root",
+  "nodes": {
+    "end": {
+      "type": "terminal"
+    },
+    "b0_f0": {
+      "type": "range",
+      "field": "field_0",
+      "start": 0,
+      "stop": 15,
+      "target": "b0_f1"
+    },
+    "b0_f1": {
+      "type": "range",
+      "field": "field_1",
+      "start": 0,
+      "stop": 7,
+      "target": "end"
+    },
+    "b1_f0": {
+      "type": "range",
+      "field": "field_0",
+      "start": 0,
+      "stop": 15,
+      "target": "b1_f1"
+    },
+    "b1_f1": {
+      "type": "range",
+      "field": "field_1",
+      "start": 0,
+      "stop": 15,
+      "target": "b1_f2"
+    },
+    "b1_f2": {
+      "type": "range",
+      "field": "field_2",
+      "start": 0,
+      "stop": 7,
+      "target": "end"
+    },
+    "b2_f0": {
+      "type": "range",
+      "field": "field_0",
+      "start": 0,
+      "stop": 15,
+      "target": "b2_f1"
+    },
+    "b2_f1": {
+      "type": "range",
+      "field": "field_1",
+      "start": 0,
+      "stop": 15,
+      "target": "end"
+    },
+    "b3_f0": {
+      "type": "range",
+      "field": "field_0",
+      "start": 0,
+      "stop": 3,
+      "target": "b3_f1"
+    },
+    "b3_f1": {
+      "type": "range",
+      "field": "field_1",
+      "start": 0,
+      "stop": 3,
+      "target": "b3_f2"
+    },
+    "b3_f2": {
+      "type": "range",
+      "field": "field_2",
+      "start": 0,
+      "stop": 3,
+      "target": "end"
+    },
+    "root": {
+      "type": "choice",
+      "field": "branch",
+      "branches": [
+        {
+          "value": "b0",
+          "target": "b0_f0"
+        },
+        {
+          "value": "b1",
+          "target": "b1_f0"
+        },
+        {
+          "value": "b2",
+          "target": "b2_f0"
+        },
+        {
+          "value": "b3",
+          "target": "b3_f0"
+        }
+      ]
+    }
+  }
+}

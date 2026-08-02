@@ -1,0 +1,20 @@
+{
+  "python": "3.12.13 (main, Jun 16 2026, 22:05:08) [GCC 13.3.0]",
+  "platform": "Linux-6.17.0-1020-azure-x86_64-with-glibc2.39",
+  "machine": "x86_64",
+  "python_packages": {
+    "hypothesis": "6.160.0",
+    "grammarinator": "26.1",
+    "numpy": "2.5.1",
+    "scipy": "1.18.0",
+    "matplotlib": "3.11.1"
+  },
+  "haskell_packages": {
+    "QuickCheck": "unavailable: Command '['ghc-pkg', 'field', 'QuickCheck', 'version', '--simple-output']' returned non-zero exit status 1.",
+    "smallcheck": "unavailable: Command '['ghc-pkg', 'field', 'smallcheck', 'version', '--simple-output']' returned non-zero exit status 1.",
+    "testing-feat": "unavailable: Command '['ghc-pkg', 'field', 'testing-feat', 'version', '--simple-output']' returned non-zero exit status 1."
+  },
+  "ghc": "The Glorious Glasgow Haskell Compilation System, version 9.14.1",
+  "cabal": "cabal-install version 3.16.1.0 \ncompiled using version 3.16.1.0 of the Cabal library (in-tree)",
+  "java": "openjdk version \"17.0.19\" 2026-04-21\nOpenJDK Runtime Environment Temurin-17.0.19+10 (build 17.0.19+10)\nOpenJDK 64-Bit Server VM Temurin-17.0.19+10 (build 17.0.19+10, mixed mode, sharing)"
+}

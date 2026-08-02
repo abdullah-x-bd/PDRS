@@ -1,0 +1,214 @@
+name: Five-baseline SOTA comparison
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "benchmarks/sota/**"
+      - "requirements-sota.txt"
+      - ".github/workflows/sota-comparison.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sota-comparison-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: haskell-actions/setup@v2
+        with:
+          ghc-version: "9.8.4"
+          cabal-version: "3.12.1.0"
+
+      - name: Install preparation dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          python -m pip install -r requirements-experiments.txt
+          python -m pip install grammarinator==26.1
+
+      - name: Generate matched schemas and grammars
+        run: python benchmarks/sota/run_comparison.py prepare
+
+      - name: Compile Grammarinator generators
+        run: |
+          rm -rf benchmarks/sota/generated
+          mkdir -p benchmarks/sota/generated
+          for grammar in benchmarks/sota/grammars/*.g4; do
+            grammarinator-process "$grammar" -o benchmarks/sota/generated --no-actions
+          done
+
+      - name: Build Feat, SmallCheck, and QuickCheck adapters
+        working-directory: benchmarks/sota/haskell
+        run: |
+          cabal update
+          cabal build
+          cabal run sota-haskell -- --out ../../../results/sota/haskell
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sota-prepared-inputs
+          retention-days: 14
+          path: |
+            results/sota/haskell
+            benchmarks/sota/corpus_manifest.json
+            benchmarks/sota/generated
+            benchmarks/sota/grammars
+            benchmarks/sota/schemas
+
+  compare:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      max-parallel: 15
+      matrix:
+        method: [pdrs, feat, smallcheck, hypothesis, grammarinator, quickcheck]
+        domain: [balanced_product, imbalanced_choice, dependent_record, protocol_message, action_space]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install common benchmark dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          python -m pip install -r requirements-experiments.txt
+
+      - name: Install method-specific dependency
+        shell: bash
+        run: |
+          case "${{ matrix.method }}" in
+            hypothesis)
+              python -m pip install hypothesis==6.160.0
+              ;;
+            grammarinator)
+              python -m pip install grammarinator==26.1
+              ;;
+          esac
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: sota-prepared-inputs
+          path: .
+
+      - name: Configure Grammarinator transport
+        if: matrix.method == 'grammarinator'
+        run: |
+          chmod +x benchmarks/sota/bin/grammarinator-generate
+          echo "$GITHUB_WORKSPACE/benchmarks/sota/bin" >> "$GITHUB_PATH"
+
+      - name: Run method-domain comparison chunk
+        env:
+          PYTHONPATH: benchmarks/sota
+        run: |
+          python benchmarks/sota/run_chunk.py \
+            --method "${{ matrix.method }}" \
+            --domain "${{ matrix.domain }}" \
+            --output "results/sota/chunks/${{ matrix.method }}__${{ matrix.domain }}.json"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sota-chunk-${{ matrix.method }}-${{ matrix.domain }}
+          retention-days: 14
+          path: results/sota/chunks/${{ matrix.method }}__${{ matrix.domain }}.json
+
+  assemble:
+    needs: compare
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: haskell-actions/setup@v2
+        with:
+          ghc-version: "9.8.4"
+          cabal-version: "3.12.1.0"
+
+      - name: Install evidence dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          python -m pip install -r requirements-experiments.txt
+          python -m pip install -r requirements-sota.txt
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: sota-prepared-inputs
+          path: .
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: sota-chunk-*
+          path: results/sota/chunks
+          merge-multiple: true
+
+      - name: Assemble matched campaign evidence
+        env:
+          PYTHONPATH: benchmarks/sota
+        run: python benchmarks/sota/assemble_chunks.py
+
+      - name: Run paired statistical analysis
+        run: python benchmarks/sota/publication_statistics.py
+
+      - name: Record environment, checksums, and verify evidence
+        env:
+          PYTHONPATH: benchmarks/sota
+        run: |
+          python benchmarks/sota/assemble.py
+          python - <<'PY'
+          import run_comparison as rc
+          rc.METHODS = (
+              "pdrs",
+              "feat",
+              "smallcheck",
+              "hypothesis",
+              "grammarinator",
+              "quickcheck",
+          )
+          rc.verify()
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: five-baseline-sota-evidence
+          retention-days: 30
+          path: |
+            results/sota
+            benchmarks/sota/corpus_manifest.json
+            benchmarks/sota/grammars
+            benchmarks/sota/schemas

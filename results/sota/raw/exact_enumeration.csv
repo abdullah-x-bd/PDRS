@@ -1,0 +1,16 @@
+method,domain,domain_size,produced,unique,complete,elapsed_s,objects_per_s,supports_random_access,supports_exact_partitions
+feat,action_space,2496,2496,2496,True,0.001210405,2062119.7037355267,True,True
+feat,balanced_product,2048,2048,2048,True,0.002202485,929858.7731585004,True,True
+feat,dependent_record,6288,6288,6288,True,0.003982023,1579096.8560452813,True,True
+feat,imbalanced_choice,2322,2322,2322,True,0.001162894,1996742.609386582,True,True
+feat,protocol_message,1112,1112,1112,True,0.000542544,2049603.35014303,True,True
+pdrs,action_space,2496,2496,2496,True,0.0061262440000007246,407427.4547340434,True,True
+pdrs,balanced_product,2048,2048,2048,True,0.004597693999997432,445440.6926605259,True,True
+pdrs,dependent_record,6288,6288,6288,True,0.027302278000007618,230310.4524830582,True,True
+pdrs,imbalanced_choice,2322,2322,2322,True,0.006715052000004107,345790.3229935643,True,True
+pdrs,protocol_message,1112,1112,1112,True,0.0032832840000054375,338685.2919205766,True,True
+smallcheck,action_space,2496,2496,2496,True,0.108958782,22907.745059044435,False,True
+smallcheck,balanced_product,2048,2048,2048,True,0.07763527,26379.76270321466,False,True
+smallcheck,dependent_record,6288,6288,6288,True,0.770836365,8157.373322676597,False,True
+smallcheck,imbalanced_choice,2322,2322,2322,True,0.09133059,25424.121315760687,False,True
+smallcheck,protocol_message,1112,1112,1112,True,0.020779242,53514.94534786206,False,True
