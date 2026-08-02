@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import csv
 import json
 from pathlib import Path
 
@@ -9,6 +8,14 @@ from corpus import DOMAINS
 
 ROOT = Path(__file__).resolve().parents[2]
 CHUNKS = ROOT / "results" / "sota" / "chunks"
+SCORED_METHODS = (
+    "pdrs",
+    "feat",
+    "smallcheck",
+    "hypothesis",
+    "grammarinator",
+    "quickcheck",
+)
 
 CAPABILITIES = [
     {"method": "pdrs", "exact_enumeration": True, "random_access": True, "uniform_objects": True, "without_replacement": True, "coordinated_partition": True, "shrinking": False, "recursive_unbounded": False},
@@ -16,15 +23,29 @@ CAPABILITIES = [
     {"method": "smallcheck", "exact_enumeration": True, "random_access": False, "uniform_objects": False, "without_replacement": True, "coordinated_partition": True, "shrinking": False, "recursive_unbounded": True},
     {"method": "hypothesis", "exact_enumeration": False, "random_access": False, "uniform_objects": False, "without_replacement": False, "coordinated_partition": False, "shrinking": True, "recursive_unbounded": True},
     {"method": "grammarinator", "exact_enumeration": False, "random_access": False, "uniform_objects": False, "without_replacement": True, "coordinated_partition": False, "shrinking": False, "recursive_unbounded": True},
-    {"method": "combol", "exact_enumeration": False, "random_access": False, "uniform_objects": True, "without_replacement": False, "coordinated_partition": False, "shrinking": False, "recursive_unbounded": True},
+    {"method": "quickcheck", "exact_enumeration": False, "random_access": False, "uniform_objects": False, "without_replacement": False, "coordinated_partition": False, "shrinking": True, "recursive_unbounded": True},
+]
+
+ATTEMPTED_BASELINES = [
+    {
+        "method": "combol",
+        "version": "0.1.11",
+        "scored": False,
+        "reason": "The native CombOL/Symbolica sampler repeatedly caused GitHub-hosted runners to receive external shutdown signals across multiple independent matched-domain jobs before producing a chunk. No performance or quality score is inferred from this operational failure.",
+        "workflow_run": 30747455997,
+        "failed_cells_observed": 4,
+    }
 ]
 
 
 def assemble() -> None:
     rc.ensure_dirs()
+    # Reuse the established aggregation and plotting code with the completed
+    # six-system comparison set rather than the attempted CombOL configuration.
+    rc.METHODS = SCORED_METHODS
     expected = {
         (method, domain.name)
-        for method in rc.METHODS
+        for method in SCORED_METHODS
         for domain in DOMAINS
     }
     payloads: dict[tuple[str, str], dict] = {}
@@ -70,7 +91,7 @@ def assemble() -> None:
                 sequences[(method, domain_name, budget, repetition)] = sequence
 
     expected_run_rows = (
-        len(rc.METHODS)
+        len(SCORED_METHODS)
         * len(DOMAINS)
         * len(rc.BUDGETS)
         * rc.REPETITIONS
@@ -89,11 +110,15 @@ def assemble() -> None:
     overlaps = rc.worker_overlap(sequences)
     rc.write_csv(rc.RAW / "worker_overlap.csv", overlaps)
     summary = rc.summarize(rows, uniformity, overlaps, exact)
+    summary["scored_methods"] = list(SCORED_METHODS)
+    summary["matched_run_rows"] = expected_run_rows
+    summary["attempted_unscored_baselines"] = ATTEMPTED_BASELINES
     (rc.PROCESSED / "summary.json").write_text(
         json.dumps(summary, indent=2, allow_nan=True) + "\n",
         encoding="utf-8",
     )
     rc.write_csv(rc.PROCESSED / "capabilities.csv", CAPABILITIES)
+    rc.write_csv(rc.PROCESSED / "attempted_baselines.csv", ATTEMPTED_BASELINES)
     rc.plot(rows, uniformity, overlaps, exact)
 
     audit_rows = []
