@@ -1,0 +1,4 @@
+evaluation,method,generated,unique,duplicate,unique_rate,generation_seconds,generation_per_second
+quantlib,pdrs_without_replacement,1200,1200,0,1.0,0.0033014430000122275,363477.42487014184
+quantlib,pdrs_with_replacement,1200,1200,0,1.0,0.0031489160000006677,381083.5220754525
+quantlib,local_uniform_grammar,1200,1199,1,0.9991666666666666,0.005084062000008771,236031.73997443967

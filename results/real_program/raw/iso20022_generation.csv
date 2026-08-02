@@ -1,0 +1,4 @@
+evaluation,method,generated,unique,duplicate,unique_rate,generation_seconds,generation_per_second
+iso20022,pdrs_without_replacement,800,800,0,1.0,0.0019712460000107512,405834.6852679152
+iso20022,pdrs_with_replacement,800,800,0,1.0,0.0018116229999805,441592.9804427362
+iso20022,local_uniform_grammar,800,800,0,1.0,0.00268608799999015,297830.89757406816

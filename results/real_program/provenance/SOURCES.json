@@ -1,0 +1,11 @@
+{
+  "pain.001.001.13": {
+    "official": "https://www.iso20022.org/message/23503/download",
+    "mirror": "https://raw.githubusercontent.com/sebastienrousseau/pacs008.github.io/2a35902f3ec7cdfe9f04c9d52743cea3e3d25630/static/schemas/pain.001.001.13.xsd"
+  },
+  "pacs.008.001.14": {
+    "official": "https://www.iso20022.org/message/23500/download",
+    "mirror": "https://raw.githubusercontent.com/WojMam/xsdParserExample/5217c9a7fbb7d2d7154d86c182d184f43a116fac/src/main/resources/xsd/pacs.008.001.14.xsd"
+  },
+  "policy": "Official source is attempted first. A commit-pinned public copy with ISO Standards Editor provenance is used only when the official host is unreachable."
+}

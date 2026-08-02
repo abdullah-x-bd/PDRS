@@ -1,0 +1,117 @@
+name: Real-program finance evaluation
+
+on:
+  pull_request:
+    paths:
+      - "benchmarks/real_program/**"
+      - "src/pdrs/**"
+      - ".github/workflows/real-program-evaluation.yml"
+  push:
+    branches: [main, "agent/**"]
+    paths:
+      - "benchmarks/real_program/**"
+      - "src/pdrs/**"
+      - ".github/workflows/real-program-evaluation.yml"
+  workflow_dispatch:
+    inputs:
+      quick:
+        description: "Use the reduced smoke-test budgets"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install PDRS and real-program dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          python -m pip install -r benchmarks/real_program/requirements.txt
+      - name: Retrieve current ISO 20022 schemas with pinned mirror fallback
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p benchmarks/real_program/vendor downloads
+          download_xsd() {
+            local official="$1"
+            local mirror="$2"
+            local wanted="$3"
+            local temp="downloads/$(basename "$wanted").download"
+            local source="official"
+            echo "Trying official source $official"
+            if ! curl \
+              --fail --location --connect-timeout 10 --max-time 20 \
+              --user-agent "PDRS-Research-Evaluation/1.0" \
+              --show-error --silent \
+              "$official" --output "$temp"; then
+              source="pinned_mirror"
+              echo "Official host unavailable; using pinned mirror $mirror"
+              curl \
+                --fail --location --retry 3 --connect-timeout 10 --max-time 60 \
+                --show-error --silent \
+                "$mirror" --output "$temp"
+            fi
+            cp "$temp" "$wanted"
+            python - "$wanted" "$source" <<'PY'
+          from lxml import etree
+          import pathlib, sys
+          path = pathlib.Path(sys.argv[1])
+          root = etree.parse(str(path)).getroot()
+          print(path, path.stat().st_size, sys.argv[2], root.get('targetNamespace'))
+          PY
+            printf '%s\t%s\t%s\n' "$(basename "$wanted")" "$source" "$(sha256sum "$wanted" | cut -d' ' -f1)" >> downloads/xsd-provenance.tsv
+          }
+          download_xsd \
+            "https://www.iso20022.org/message/23503/download" \
+            "https://raw.githubusercontent.com/sebastienrousseau/pacs008.github.io/2a35902f3ec7cdfe9f04c9d52743cea3e3d25630/static/schemas/pain.001.001.13.xsd" \
+            "benchmarks/real_program/vendor/pain.001.001.13.xsd"
+          download_xsd \
+            "https://www.iso20022.org/message/23500/download" \
+            "https://raw.githubusercontent.com/WojMam/xsdParserExample/5217c9a7fbb7d2d7154d86c182d184f43a116fac/src/main/resources/xsd/pacs.008.001.14.xsd" \
+            "benchmarks/real_program/vendor/pacs.008.001.14.xsd"
+          sha256sum benchmarks/real_program/vendor/*.xsd | tee benchmarks/real_program/vendor/SHA256SUMS.txt
+          cat > benchmarks/real_program/vendor/SOURCES.json <<'JSON'
+          {
+            "pain.001.001.13": {
+              "official": "https://www.iso20022.org/message/23503/download",
+              "mirror": "https://raw.githubusercontent.com/sebastienrousseau/pacs008.github.io/2a35902f3ec7cdfe9f04c9d52743cea3e3d25630/static/schemas/pain.001.001.13.xsd"
+            },
+            "pacs.008.001.14": {
+              "official": "https://www.iso20022.org/message/23500/download",
+              "mirror": "https://raw.githubusercontent.com/WojMam/xsdParserExample/5217c9a7fbb7d2d7154d86c182d184f43a116fac/src/main/resources/xsd/pacs.008.001.14.xsd"
+            },
+            "policy": "Official source is attempted first. A commit-pinned public copy with ISO Standards Editor provenance is used only when the official host is unreachable."
+          }
+          JSON
+          cat downloads/xsd-provenance.tsv
+      - name: Run PDRS unit tests
+        run: PYTHONPATH=src python -m unittest discover -s tests -v
+      - name: Run all three real-program evaluations
+        shell: bash
+        run: |
+          args=()
+          if [ "${{ inputs.quick || false }}" = "true" ]; then args+=(--quick); fi
+          PYTHONPATH=src python -m benchmarks.real_program.entrypoint \
+            --xsd-dir benchmarks/real_program/vendor "${args[@]}"
+      - name: Upload complete real-program evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: real-program-finance-evidence
+          path: |
+            results/real_program
+            benchmarks/real_program/vendor/SOURCES.json
+            benchmarks/real_program/vendor/SHA256SUMS.txt
+            downloads/xsd-provenance.tsv
+          retention-days: 90
