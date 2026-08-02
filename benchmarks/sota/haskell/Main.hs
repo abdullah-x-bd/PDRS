@@ -5,7 +5,7 @@
 module Main where
 
 import Control.Exception (evaluate)
-import Control.Monad.Identity (Identity)
+import Data.Functor.Identity (Identity)
 import qualified Data.Set as Set
 import System.CPUTime (getCPUTime)
 import System.Directory (createDirectoryIfMissing)
