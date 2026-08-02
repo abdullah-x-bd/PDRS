@@ -2,6 +2,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import statistics
+
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import numpy as np
 
 import run_comparison as rc
 from corpus import DOMAINS
@@ -16,6 +22,14 @@ SCORED_METHODS = (
     "grammarinator",
     "quickcheck",
 )
+DISPLAY = {
+    "pdrs": "PDRS",
+    "feat": "Feat",
+    "smallcheck": "SmallCheck",
+    "hypothesis": "Hypothesis",
+    "grammarinator": "Grammarinator",
+    "quickcheck": "QuickCheck",
+}
 
 CAPABILITIES = [
     {"method": "pdrs", "exact_enumeration": True, "random_access": True, "uniform_objects": True, "without_replacement": True, "coordinated_partition": True, "shrinking": False, "recursive_unbounded": False},
@@ -38,10 +52,116 @@ ATTEMPTED_BASELINES = [
 ]
 
 
+def save_figure(name: str) -> None:
+    plt.tight_layout()
+    plt.savefig(rc.FIGURES / f"{name}.svg")
+    plt.savefig(rc.FIGURES / f"{name}.png", dpi=180)
+    plt.close()
+
+
+def plot(rows: list[dict], uniformity: list[dict], overlaps: list[dict], exact: list[dict]) -> None:
+    labels = list(SCORED_METHODS)
+    x = np.arange(len(labels))
+    max_budget_rows: list[list[dict]] = []
+    for method in labels:
+        subset = []
+        for domain in DOMAINS:
+            budget = min(max(rc.BUDGETS), domain.count)
+            subset.extend(
+                row
+                for row in rows
+                if row["method"] == method
+                and row["domain"] == domain.name
+                and row["budget"] == budget
+            )
+        max_budget_rows.append(subset)
+
+    def bar_metric(filename: str, title: str, ylabel: str, key: str) -> None:
+        medians = [statistics.median(float(row[key]) for row in subset) for subset in max_budget_rows]
+        plt.figure(figsize=(10, 5))
+        plt.bar(x, medians)
+        plt.xticks(x, [DISPLAY[label] for label in labels], rotation=20)
+        plt.ylabel(ylabel)
+        plt.title(title)
+        save_figure(filename)
+
+    bar_metric(
+        "unique_rate",
+        "Unique valid output rate at maximum matched budget",
+        "Unique rate",
+        "unique_rate",
+    )
+    bar_metric(
+        "uniform_bug_discovery",
+        "Uniformly located bugs reached",
+        "Distinct bugs",
+        "uniform_bugs",
+    )
+    bar_metric(
+        "rare_bug_discovery",
+        "Rare-branch bugs reached",
+        "Distinct bugs",
+        "rare_branch_bugs",
+    )
+    bar_metric(
+        "boundary_bug_discovery",
+        "Boundary bugs reached",
+        "Distinct bugs",
+        "boundary_bugs",
+    )
+
+    branch_tv = [
+        statistics.median(
+            float(row["branch_total_variation"])
+            for row in uniformity
+            if row["method"] == method
+        )
+        for method in labels
+    ]
+    plt.figure(figsize=(10, 5))
+    plt.bar(x, branch_tv)
+    plt.xticks(x, [DISPLAY[label] for label in labels], rotation=20)
+    plt.ylabel("Median branch total variation")
+    plt.title("Deviation from object-uniform branch probabilities")
+    save_figure("uniformity_branch_tv")
+
+    overlap_values = [
+        statistics.median(
+            float(row["overlap_fraction"])
+            for row in overlaps
+            if row["method"] == method
+        )
+        for method in labels
+    ]
+    plt.figure(figsize=(10, 5))
+    plt.bar(x, overlap_values)
+    plt.xticks(x, [DISPLAY[label] for label in labels], rotation=20)
+    plt.ylabel("Median overlap fraction")
+    plt.title("Four-worker duplicate overlap")
+    save_figure("worker_overlap")
+
+    exact_methods = ["pdrs", "feat", "smallcheck"]
+    exact_speed = [
+        statistics.median(
+            float(row["objects_per_s"])
+            for row in exact
+            if row["method"] == method
+        )
+        for method in exact_methods
+    ]
+    plt.figure(figsize=(8, 5))
+    plt.bar(np.arange(len(exact_methods)), exact_speed)
+    plt.xticks(
+        np.arange(len(exact_methods)),
+        [DISPLAY[method] for method in exact_methods],
+    )
+    plt.ylabel("Median objects per second")
+    plt.title("Complete finite-domain enumeration throughput")
+    save_figure("exact_enumeration")
+
+
 def assemble() -> None:
     rc.ensure_dirs()
-    # Reuse the established aggregation and plotting code with the completed
-    # six-system comparison set rather than the attempted CombOL configuration.
     rc.METHODS = SCORED_METHODS
     expected = {
         (method, domain.name)
@@ -119,7 +239,7 @@ def assemble() -> None:
     )
     rc.write_csv(rc.PROCESSED / "capabilities.csv", CAPABILITIES)
     rc.write_csv(rc.PROCESSED / "attempted_baselines.csv", ATTEMPTED_BASELINES)
-    rc.plot(rows, uniformity, overlaps, exact)
+    plot(rows, uniformity, overlaps, exact)
 
     audit_rows = []
     for (method, domain), payload in sorted(payloads.items()):
