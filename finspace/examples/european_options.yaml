@@ -1,0 +1,31 @@
+name: european-option-grid
+version: "1"
+description: Example finite European option scenario space.
+metadata:
+  domain: derivatives
+fields:
+  - name: option_type
+    values: [call, put]
+  - name: currency
+    values: [USD, EUR, JPY]
+  - name: rate
+    depends_on: currency
+    cases:
+      - equals: USD
+        values: [0.00, 0.01, 0.03, 0.05]
+      - equals: EUR
+        values: [-0.01, 0.00, 0.02, 0.04]
+      - equals: JPY
+        values: [-0.01, 0.00, 0.01]
+  - name: spot
+    values: [80.0, 90.0, 100.0, 110.0, 120.0]
+  - name: strike
+    values: [80.0, 90.0, 100.0, 110.0, 120.0]
+  - name: maturity_days
+    values: [7, 30, 90, 180, 365]
+  - name: volatility
+    values: [0.10, 0.20, 0.40, 0.80]
+  - name: dividend
+    values: [0.00, 0.01, 0.03]
+  - name: engine
+    values: [analytic, binomial, finite_difference]
