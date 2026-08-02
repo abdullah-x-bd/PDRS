@@ -15,6 +15,9 @@ import Text.Printf (printf)
 
 import Test.Feat (Enumerable(..))
 import qualified Test.Feat as F
+import Test.QuickCheck (Gen, elements, oneof)
+import Test.QuickCheck.Gen (unGen)
+import Test.QuickCheck.Random (mkQCGen)
 import Test.SmallCheck.Series (Serial(..))
 import qualified Test.SmallCheck.Series as S
 
@@ -111,6 +114,44 @@ rankAction (ASend a b c) = 128 + mixed [16,16,8] [ix a,ix b,ix c]
 rankAction (ACompute a b) = 2176 + mixed [16,16] [ix a,ix b]
 rankAction (AAdmin a b c) = 2432 + mixed [4,4,4] [ix a,ix b,ix c]
 
+genEnum :: (Enum a, Bounded a) => Gen a
+genEnum = elements [minBound .. maxBound]
+
+genBalanced :: Gen Balanced
+genBalanced = Balanced <$> genEnum <*> genEnum <*> genEnum
+
+genImbalanced :: Gen Imbalanced
+genImbalanced = oneof
+  [ ISmall <$> genEnum
+  , IMedium <$> genEnum <*> genEnum
+  , ILarge <$> genEnum <*> genEnum
+  , IHuge <$> genEnum <*> genEnum <*> genEnum
+  ]
+
+genDependent :: Gen Dependent
+genDependent = oneof
+  [ DAlpha <$> genEnum <*> genEnum
+  , DBeta <$> genEnum <*> genEnum <*> genEnum
+  , DGamma <$> genEnum <*> genEnum <*> genEnum <*> genEnum <*> genEnum <*> genEnum
+  , DDelta <$> genEnum
+  ]
+
+genProtocol :: Gen Protocol
+genProtocol = oneof
+  [ PPing <$> genEnum
+  , PData <$> genEnum <*> genEnum <*> genEnum
+  , PAck <$> genEnum <*> genEnum
+  , PError <$> genEnum <*> genEnum
+  ]
+
+genAction :: Gen Action
+genAction = oneof
+  [ ASearch <$> genEnum <*> genEnum
+  , ASend <$> genEnum <*> genEnum <*> genEnum
+  , ACompute <$> genEnum <*> genEnum
+  , AAdmin <$> genEnum <*> genEnum <*> genEnum
+  ]
+
 timed :: IO a -> IO (a, Integer)
 timed action = do
   start <- getCPUTime
@@ -155,6 +196,24 @@ runOne out name count ranker = do
   writeRanks (out </> ("smallcheck_" ++ name ++ ".txt")) "smallcheck" smallTime smallRanks
   printf "%s feat=%d smallcheck=%d\n" name (length featRanks) (length smallRanks)
 
+quickCheckRanks :: Gen a -> (a -> Int) -> Int -> [Int]
+quickCheckRanks generator ranker repetition =
+  [ ranker (unGen generator (mkQCGen seedValue) 30)
+  | sampleIndex <- [0 .. 999]
+  , let seedValue = 20260802 + repetition * 1000003 + sampleIndex * 97
+  ]
+
+runQuickCheck :: FilePath -> String -> Gen a -> (a -> Int) -> IO ()
+runQuickCheck out name generator ranker = mapM_ one [0 .. 19]
+  where
+    one repetition = do
+      (ranks, elapsed) <- timed $ forceInts (quickCheckRanks generator ranker repetition)
+      writeRanks
+        (out </> ("quickcheck_" ++ name ++ "_" ++ show repetition ++ ".txt"))
+        "quickcheck"
+        elapsed
+        ranks
+
 main :: IO ()
 main = do
   args <- getArgs
@@ -166,4 +225,9 @@ main = do
       runOne out "dependent_record" 6288 rankDependent
       runOne out "protocol_message" 1112 rankProtocol
       runOne out "action_space" 2496 rankAction
+      runQuickCheck out "balanced_product" genBalanced rankBalanced
+      runQuickCheck out "imbalanced_choice" genImbalanced rankImbalanced
+      runQuickCheck out "dependent_record" genDependent rankDependent
+      runQuickCheck out "protocol_message" genProtocol rankProtocol
+      runQuickCheck out "action_space" genAction rankAction
     _ -> error "usage: sota-haskell --out DIRECTORY"
