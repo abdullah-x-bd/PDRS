@@ -1,0 +1,8 @@
+system,input_model,dependent_domains,exact_cardinality,rank,unrank,inverse_mapping,uniform_sampling,no_replacement,distributed_partitioning,cross_language_ir,persistent_schema_relative_ids,checkpointed_campaigns,finance_adapters,scope_note
+PDRS,external finite acyclic schema,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,systems contribution evaluated here
+SciFe,embedded Scala enumerator algebra,yes,yes,yes,yes,yes,by random index,derivable from distinct indices,by index ranges,no,no,no,no,closest dependent-enumeration predecessor
+Feat,embedded Haskell enumeration algebra,guarded recursion and algebraic dependencies,yes,yes,yes,yes,by random index,derivable from distinct indices,by index ranges,no,no,no,no,closest functional-enumeration predecessor
+Reduced MDD,compiled multivalued decision graph,yes,yes,derivable,derivable,derivable,derivable,derivable,derivable,no,no,no,no,representative knowledge-compilation baseline implemented in artifact
+KUS d-DNNF,compiled Boolean constraint representation,yes,yes,no canonical public rank interface,no canonical public unrank interface,no,yes,yes through sample management,custom,no,no,no,no,uniform SAT witness sampling after knowledge compilation
+Hypothesis,embedded Python strategies,yes,no,no,no,no,targeted adaptive generation,custom through databases or filtering,independent workers can overlap,no,replay through examples and seeds,example database,no,property testing and shrinking
+NIST ACTS,finite factor and constraint model,yes,model count is not the primary interface,no,no,no,no,no,partition after suite construction,no,test rows are stable within suite,no,no,t-way interaction coverage
