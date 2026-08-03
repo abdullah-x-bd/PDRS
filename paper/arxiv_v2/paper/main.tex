@@ -1,0 +1,319 @@
+\documentclass[10pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs,tabularx,array,multirow}
+\usepackage{graphicx}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\setlist{nosep,leftmargin=*}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newcommand{\D}{\mathcal{D}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\rank}{\operatorname{rank}}
+\newcommand{\unrank}{\operatorname{unrank}}
+\newcommand{\TV}{\operatorname{TV}}
+\title{PDRS: A Cross-Language Compiler for Rank-Addressable Finite Structured Domains}
+\author{Abdullah X\\Independent Researcher, New Delhi, India\\\texttt{github.com/abdullah-x-bd}}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Finite structured test domains often admit exact counting and indexed enumeration, yet practical systems rarely expose those properties through a language-neutral interface suitable for reproducible distributed campaigns. We present Path-Dependent Radix Spaces (PDRS), a compiler and runtime framework that translates finite acyclic dependent schemas into a canonical intermediate representation with exact cardinality, rank, and unrank operations. The mathematical construction belongs to the established family of enumerative coding and indexed dependent enumeration. PDRS contributes an external schema, independent Python, C, and Rust runtimes, schema-relative object identities, resource controls, deterministic work allocation, and a finance-oriented deployment layer called FinSpace.
+
+The revision separates token-level enumeration from record semantics by defining typed canonical values and an injective lowering condition. It also reports bit-complexity, specifies Floyd sampling without replacement, and distinguishes object replay from execution replay. A redesigned evaluation uses an independent recursive oracle, a reduced multivalued decision diagram baseline, eight defect distributions, five sampling policies, five distributed allocation policies with heterogeneous costs, and paired campaign-level bootstrap intervals. The results support exact indexing and duplicate-free allocation. They also show that object-uniform sampling is not universally optimal for defect discovery and that contiguous rank intervals can produce severe execution-cost imbalance. Existing SimpleFIX, QuantLib, and ISO 20022 studies demonstrate integration and reproducible case identification; an extended workflow adds boundary and mutation tests without claiming a previously unknown defect. The contribution is a systems realization and evaluation of indexed finite-domain enumeration, not a new theory of combinatorial ranking.
+\end{abstract}
+
+\paragraph{Keywords.} combinatorial ranking; dependent enumeration; structured testing; knowledge compilation; distributed testing; financial software; reproducibility
+
+\section{Introduction}
+Software tests, protocol messages, compiler inputs, and financial scenarios often form finite domains with dependencies among fields. A market order omits price, a limit order requires it, a currency restricts rate choices, and a message family determines which fields follow. Cartesian generation creates invalid combinations. Independent random workers repeat expensive cases and complicate completion accounting. A stable integer identity for every valid object addresses a different objective from adaptive bug search or interaction-covering suite minimization.
+
+Let \(\D_S\) be the finite domain denoted by schema \(S\), with \(N_S=|\D_S|\). PDRS compiles \(S\) into mutually inverse operations
+\begin{equation}
+  \rank_S : \D_S \longleftrightarrow [0,N_S) : \unrank_S.
+\end{equation}
+Cover's enumerative source coding, combinatorial ranking, Feat, and SciFe already establish the central counting-and-indexing idea \cite{cover1973,nijenhuis1978,feat2012,scife2015}. The contribution here therefore concerns the systems bundle and its empirical evaluation.
+
+The paper separates three contribution classes.
+\begin{enumerate}
+  \item \textbf{Established foundation.} Subtree counting, contiguous branch intervals, ranking, unranking, uniform sampling through uniform indices, and fixed-width schema-relative identifiers.
+  \item \textbf{Systems contribution.} An external finite-domain schema, canonical language-neutral IR, independent Python/C/Rust runtimes, explicit resource limits, deterministic work allocation, result ledgers, and the FinSpace application layer.
+  \item \textbf{Empirical contribution.} Semantic audits, cross-language conformance, scaling measurements, fairer defect-distribution and distributed-allocation experiments, and real-program case studies.
+\end{enumerate}
+
+PDRS does not automatically provide branch-balanced generation. Contiguous intervals do not guarantee balanced execution cost. A raw rank is not an integrity-protected identifier. Arbitrary schema edits do not preserve ranks. Object-uniform sampling is not universally optimal for testing. Cross-language agreement does not independently prove semantic correctness. The real-program experiments have not established a previously unknown defect.
+
+\section{Closest Prior Work}
+\subsection{Indexed and dependent enumeration}
+Feat defines efficiently computable bijections between initial intervals of natural numbers and algebraic values. Its enumeration algebra supports sums, products, guarded recursion, bijections, random access, memoization, and parallel work by indices \cite{feat2012}. SciFe goes closer to the present dependency model: it provides dependent enumerators, exact cardinalities, inversion, memoized components, random testing through indices, and parallel enumeration over index ranges \cite{scife2015}. PDRS does not claim priority over either construction.
+
+The distinction lies in interface and deployment. PDRS accepts an external schema, emits a canonical language-neutral IR, executes the same semantics in three independent runtimes, attaches schema identities to ranks, enforces compilation limits, and supplies checkpointed campaign primitives. FinSpace adds finance-facing records and adapters. These features constitute systems engineering rather than a new rank formula.
+
+\subsection{Predicate and constraint-based generation}
+Korat explores bounded Java structures that satisfy predicates \cite{korat2002}. TestEra compiles specifications to SAT and maps satisfying assignments back to program states \cite{testera2004}. Luck provides a language for constrained property-based generators with distribution annotations and constraint solving \cite{luck2017}. These systems support richer predicates than the present finite choice/range language. Their compilation and search objectives differ from direct exact indexing of a deliberately restricted domain.
+
+Knowledge compilation transforms constraints into structures that support model counting and sampling. Uniform witness generation from compiled representations can provide exact or near-uniform sampling over satisfying assignments \cite{kus2018}. A PDRS IR resembles a deterministic multivalued decision DAG with subtree counts. The artifact therefore includes an exact reduced multivalued decision diagram baseline. That baseline represents the broader family; it is not presented as a reproduction of KUS or a full d-DNNF compiler.
+
+\subsection{Property-based, grammar-based, and interaction testing}
+QuickCheck established compositional random generators and shrinking \cite{quickcheck2000}. SmallCheck enumerates values by increasing depth \cite{smallcheck2008}. Hypothesis adds adaptive targeting, persistent examples, and sophisticated shrinking. Grammarinator supports recursive grammar generation and mutation \cite{grammarinator2018}. These systems can find failures quickly under objectives that differ from complete-object uniformity.
+
+NIST ACTS constructs compact covering arrays for \(t\)-way interactions \cite{acts2010}. It can reduce a huge combination space to a small suite when interaction coverage governs the task. PDRS serves campaigns that require stable complete-object identities, exact completion accounting, duplicate-free selection, or deterministic allocation. A practical workflow can use ACTS to select interactions and PDRS ranks to validate and replay complete objects.
+
+\begin{table*}[t]
+\centering
+\small
+\caption{Closest conceptual systems. Entries describe primary interfaces, not every capability obtainable through custom engineering.}
+\begin{tabularx}{\textwidth}{lXXXXX}
+\toprule
+ & PDRS & SciFe & Feat & Knowledge compilation & Hypothesis / ACTS \\
+\midrule
+Input model & External finite schema & Scala enumerator algebra & Haskell enumeration algebra & Boolean or multivalued constraints & Strategies / factor model \\
+Dependencies & Explicit path dependence & Dependent enumerators & Algebraic and guarded structure & Arbitrary compiled constraints & Strategy or constraint dependent \\
+Exact count & Yes & Yes & Yes & Often, after compilation & No / not primary \\
+Rank and unrank & Canonical public operations & Indexed enumeration and inversion & Indexed enumeration & Representation dependent & No \\
+Disjoint work & Built-in rank policies & Index ranges & Index ranges & Custom allocation & External coordination \\
+Cross-language IR & Yes & No & No & Compiler specific & No \\
+Persistent schema IDs & Yes & No & No & Custom & Example or suite specific \\
+Campaign ledger & FinSpace & No & No & No & Example database / no \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+\section{Formal Model}
+\subsection{Typed canonical values}
+JSON equality alone creates unwanted collisions: Boolean values can compare equal to integers in some languages, Unicode admits multiple normalized representations, and floating-point values introduce signed zero and NaN complications. The revision uses a typed value algebra
+\begin{equation}
+ v ::= \texttt{null}\mid \texttt{bool}(b)\mid \texttt{int}(z)\mid
+ \texttt{decimal}(s)\mid \texttt{string}(u)\mid \texttt{date}(d),
+\end{equation}
+where strings use Unicode NFC and decimals use a canonical textual representation. The implemented audit language uses string choices and bounded integers. It rejects Boolean values where integers are required.
+
+\begin{definition}[Well-formed schema]
+A schema \(S=(V,E,r,\tau,\prec)\) is well formed when: (i) \((V,E)\) is finite and acyclic; (ii) every node is reachable from \(r\); (iii) every edge target exists; (iv) each choice has at least one branch with a unique normalized typed label; (v) every range has inclusive integer bounds \(a\le b\); (vi) every root-to-terminal path uses each record field at most once; and (vii) configured node, depth, range-width, and cardinality-bit limits hold.
+\end{definition}
+
+The node constructors are a terminal \(T\), an ordered choice
+\(Q[(a_0,v_0),\ldots,(a_{k-1},v_{k-1})]\), and a range \(G[a,b,v]\). Their token denotations are
+\begin{align}
+\D(T) &= \{\epsilon\},\\
+\D(Q) &= \biguplus_{i=0}^{k-1} \{a_i\}\mathbin\Vert \D(v_i),\\
+\D(G[a,b,v]) &= \biguplus_{z=a}^{b} \{z\}\mathbin\Vert \D(v).
+\end{align}
+Typed distinctness makes each union disjoint.
+
+\subsection{Counting, rank, and unrank}
+Let \(C(v)=|\D(v)|\). Reverse topological evaluation gives
+\begin{align}
+C(T)&=1,\\
+C(Q)&=\sum_{i=0}^{k-1}C(v_i),\\
+C(G[a,b,v])&=(b-a+1)C(v).
+\end{align}
+For choice prefixes \(P_i=\sum_{j<i}C(v_j)\), define
+\begin{align}
+\rank_T(\epsilon)&=0,\\
+\rank_Q(a_i\Vert x)&=P_i+\rank_{v_i}(x),\\
+\rank_G(z\Vert x)&=(z-a)C(v)+\rank_v(x).
+\end{align}
+Unrank selects the unique choice interval \([P_i,P_i+C(v_i))\). At a range node with child size \(c\), Euclidean division \(q=dc+q'\) recovers \(z=a+d\) and the child rank \(q'\).
+
+\begin{theorem}[Token-level bijection]
+For every well-formed node \(v\), rank and unrank are mutual inverses between \(\D(v)\) and \([0,C(v))\).
+\end{theorem}
+\begin{proof}
+Reverse-topological structural induction suffices. The terminal has one object and one rank. Choice prefix intervals form a disjoint cover of \([0,C(Q))\); adding and subtracting the same prefix reduces each inverse identity to the child. Range intervals of width \(C(v)\) form a disjoint cover; Euclidean quotient and remainder recover the selected range value and child rank. The induction hypothesis completes both identities.
+\end{proof}
+
+\subsection{Record lowering}
+Let \(L_S:\D_{\mathrm{token}}(S)\rightarrow\D_{\mathrm{record}}(S)\) lower a token path to a typed record.
+
+\begin{theorem}[Record-level bijection]
+If \(L_S\) is injective over the token denotation, then
+\(L_S\circ\unrank_S\) is a bijection from \([0,N_S)\) to the record domain, and
+\(\rank_S\circ L_S^{-1}\) is its inverse.
+\end{theorem}
+\begin{proof}
+The token-level theorem supplies a bijection. Injective lowering maps distinct token paths to distinct records and is surjective onto the record domain by definition. Composition preserves bijectivity.
+\end{proof}
+
+The audit compiler enforces injectivity by typed values, NFC normalization, unique normalized choice labels, and path-wise field uniqueness. Richer FinSpace values require an explicit canonicalization version and equivalent collision tests.
+
+\subsection{Sampling without replacement}
+A uniform random rank yields an object-uniform sample by bijection. For a budget \(B\le N\), the audit implementation uses Floyd's algorithm. For \(j=N-B,\ldots,N-1\), draw \(t\) uniformly from \([0,j]\); insert \(j\) when \(t\) already appears in the selected set and insert \(t\) otherwise. The algorithm selects each \(B\)-element subset with equal probability, uses \(O(B)\) time and memory, and supports arbitrary-precision \(N\). A final shuffle randomizes presentation order.
+
+Object-uniformity gives a branch probability proportional to branch cardinality. It therefore differs from branch-uniform, boundary-biased, interaction-covering, and adaptive coverage objectives.
+
+\subsection{Complexity}
+Let \(d\) be active path depth, \(k\) the maximum choice width, and
+\(b=\lceil\log_2 N\rceil\). Let \(A(b)\) and \(C(b)\) denote big-integer addition and comparison costs. Compilation performs \(O(|V|+|E|)\) graph operations and cardinality arithmetic. Prefix endpoints permit binary-search choice selection, giving
+\begin{equation}
+T_{\mathrm{unrank}}=O\left(d[\log k\,C(b)+A(b)]\right).
+\end{equation}
+Range steps also perform division on \(b\)-bit integers. Python supports arbitrary-precision counts. The current C and Rust engines reject domains beyond unsigned 64-bit cardinality.
+
+\subsection{Object replay and execution replay}
+The tuple
+\begin{equation}
+I_{\mathrm{object}}=(c,H(S),q)
+\end{equation}
+contains a canonicalization version, schema hash, and rank. It reconstructs the structured object. Execution replay additionally requires
+\begin{equation}
+I_{\mathrm{execution}}=(c,H(S),q,A,E,O,X),
+\end{equation}
+where \(A\) identifies the adapter, \(E\) the software environment, \(O\) the oracle configuration, and \(X\) any external-data snapshot. A rank alone provides neither integrity nor execution reproducibility. Practical identifiers should add a checksum for accidental corruption or a MAC where authenticity matters.
+
+\section{System Architecture}
+The compiler validates a declarative schema, computes cardinalities and choice prefixes, and emits a canonical IR. Independent Python, C11, and Rust 2021 runtimes execute the same IR. Existing evidence contains exhaustive native round trips and shared cross-language vectors. Cross-language agreement tests implementation consistency; the independent semantic oracle in this revision addresses the separate risk that all runtimes agree on the same mistaken semantics.
+
+FinSpace lowers record-oriented finance schemas to PDRS. It provides exact sampling, stratification, conditioned subspaces, deterministic partitions, NumPy/Pandas/Arrow conversion, and a SQLite result ledger. QuantLib performs numerical pricing, SimpleFIX performs FIX encoding and parsing, and XML validators check bounded ISO 20022 documents. FinSpace coordinates those target systems; it does not replace their domain logic.
+
+\section{Artifact Freeze and Evidence Layers}
+The paper freezes PDRS source at commit
+\texttt{a2f0449c254f8d222a7fcb62b34367ec532ce7a9} and FinSpace at
+\texttt{3760f1480e3ef19e4ff0928ddd6938e04045ab1b}. The public packages are
+\texttt{pdrs==0.2.0} and \texttt{finspace==0.1.0}. The PDRS README also used the phrase ``Version 0.3 evidence'' for later repository functionality. The manuscript identifies evaluated source by commit SHA and treats the PyPI version as a separate distribution label.
+
+Evidence has three layers.
+\begin{enumerate}
+  \item The frozen first layer contains the original cross-language, six-system, and finance experiments.
+  \item The present branch contains the redesigned semantic, sampling, distribution, allocation, and statistical experiments.
+  \item A separate CI job creates \texttt{results/real\_program\_v2}; it never overwrites the original real-program data.
+\end{enumerate}
+A single command, \texttt{make reproduce}, regenerates the second layer and the manuscript. A Dockerfile fixes the operating-system and Python base. The artifact leaves its Zenodo DOI blank until the repository owner creates a real immutable release and Zenodo mints the DOI.
+
+\section{Experimental Design}
+\subsection{Semantic correctness and representation}
+The semantic audit generates 150 finite schemas. An independent recursive function enumerates each token denotation without using PDRS counts or rank arithmetic. The test compares exact cardinality, sequence order, rank, unrank, and typed-record uniqueness. Seven malformed cases test cycles, duplicate normalized labels, missing targets, unreachable nodes, repeated fields, Boolean-as-integer confusion, and empty ranges.
+
+Scaling experiments vary binary-chain depth from 2 to 256. Separate shared-DAG and expanded-tree families vary top-level width. An exact reduced MDD compiles the same schemas and supplies an independent count plus a representation-size comparison. The baseline represents a knowledge-compilation family; it does not substitute for a direct external d-DNNF or KUS evaluation.
+
+\subsection{Defect distributions and generation methods}
+The benchmark domain contains 16,384 objects across four unequal branches. Five methods receive budgets of 100, 500, and 1,000 across 30 paired repetitions:
+\begin{enumerate}
+  \item object-uniform PDRS ranks without replacement;
+  \item object-uniform ranks with replacement;
+  \item branch-balanced selection;
+  \item boundary-biased selection; and
+  \item a simple coverage-guided selector over branch, bucket, boundary, and pair features.
+\end{enumerate}
+The study uses eight defect distributions: object-uniform, branch-uniform, rare-branch, boundary, pairwise interaction, clustered local, execution-derived, and historical-like edge cases. The historical-like set encodes boundary and interval-transition patterns; it is not a corpus of confirmed historical software bugs.
+
+Each row records attempts, unique objects, duplicates, distinct defects, first-defect position, simulated execution cost, and defects per 1,000 cost units. Equal-attempt and cost-normalized views prevent one budget convention from carrying the conclusion.
+
+\subsection{Distributed allocation}
+Eight workers receive the complete domain through five coordinated methods: contiguous intervals, strided ranks, hash assignment, affine-permuted intervals, and a centrally shuffled global list. Every method can eliminate duplicate ranks. The heterogeneous cost model makes later branches and boundary cases more expensive. Metrics include duplicate assignments, object-count coefficient of variation, cost coefficient of variation, maximum worker cost, branch-distribution error, coordination units, replayability, and remaining work after a simulated worker failure.
+
+\subsection{Statistical unit}
+One complete seeded campaign is the independent unit. Budget prefixes from one campaign remain nested observations. For each distribution, budget, and comparator, the analysis pairs distinct-defect counts by repetition and bootstraps the complete paired differences 2,000 times. It reports the median paired difference and a 95 percent percentile interval. This design avoids treating correlated prefixes as independent samples.
+
+\section{Results}
+\subsection{Semantic correctness}
+The deterministic audit evaluates 150 generated schemas and 3,421 exhaustively enumerated objects. It records zero cardinality mismatches, rank/unrank failures, or typed-lowering collisions. All seven malformed schemas are rejected, and canonically equivalent composed and decomposed Unicode labels produce the same hash. These tests strengthen implementation evidence but do not replace a proof-assistant formalization.
+
+\subsection{Scaling and representation}
+Figure~\ref{fig:scaling} shows rank and unrank latency against active path depth. The relationship is approximately linear on the tested chains, subject to interpreter and big-integer costs. Figure~\ref{fig:representation} shows the effect of DAG sharing and MDD reduction. The shared representation remains compact as top-level alternatives reuse the same continuation. Expanded trees grow with repeated structure. PDRS therefore works best when the external schema exposes common subgraphs; richer predicates can require a much larger compiled representation.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=.86\linewidth]{../figures/rank_unrank_scalability.pdf}
+\caption{Rank and unrank scalability across binary chains. Timings are environment-specific; the structural trend is the relevant result.}
+\label{fig:scaling}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=.86\linewidth]{../figures/representation_scaling.pdf}
+\caption{Compiled-node growth for shared DAGs, expanded trees, and an exact reduced MDD baseline.}
+\label{fig:representation}
+\end{figure}
+
+\subsection{Defect discovery}
+Figure~\ref{fig:defects} rejects a universal ranking. Object-uniform no-replacement sampling is strong when defects follow complete-object mass or duplicate avoidance matters. Branch-balanced generation improves rare-branch access. Boundary bias and coverage guidance lead on their aligned defect classes. Across the 96 paired bootstrap comparisons, most intervals include zero; several comparisons support PDRS and more support a targeted comparator. The result directly narrows the claim: PDRS supplies exact object addressing and a useful default distribution, while defect-sensitive workflows should choose or learn an appropriate sampling objective.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{../figures/defect_distributions.pdf}
+\caption{Median distinct defects at budget 1,000 across 30 paired repetitions. Each method performs best under some defect structures.}
+\label{fig:defects}
+\end{figure}
+
+\subsection{Distributed work}
+All five coordinated policies assign every rank exactly once. Zero overlap therefore does not distinguish PDRS intervals from generic coordinated alternatives. Execution balance does. Contiguous intervals produce a cost coefficient of variation near 0.80 under the heterogeneous cost model. Striding reduces it to about 0.09; hashing, affine permutation, and central shuffling reduce it further. Affine permutation preserves rank-only coordination and exact replay while mixing adjacent structural regions. Hash assignment also balances work but requires worker membership to be recomputed from each rank. Central shuffling incurs global \(O(N)\) coordination state.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=.86\linewidth]{../figures/distributed_tradeoff.pdf}
+\caption{Duplicate assignments and execution-cost imbalance. Every coordinated method is disjoint, while balance and coordination differ sharply.}
+\label{fig:distributed}
+\end{figure}
+
+The proposition that contiguous worker counts differ by at most one remains correct. It does not imply equal runtime, branch diversity, memory, or fault-finding potential.
+
+\section{Real-Program Evidence}
+\subsection{Frozen first evidence layer}
+The first evidence layer executed 9,000 valid SimpleFIX messages, 1,200 QuantLib scenarios, 800 valid ISO 20022 documents, and 1,000 controlled invalid documents. It reported zero valid-message oracle failures, zero QuantLib oracle failures, and dual-validator rejection of all selected invalid XML mutations. The SimpleFIX methods reached the same measured package coverage. No previously unknown defect was confirmed.
+
+At 500,000 replacement draws, the QuantLib domain repeated 35,604 scenarios and the ISO domain repeated 28,031. Distinct-rank selection produced no duplicate ranks. Eight independent random workers also overlapped, while coordinated PDRS intervals did not. These figures demonstrate duplicate avoidance relative to independent sampling. They do not show that interval partitioning uniquely solves coordination; the redesigned distributed study includes generic alternatives.
+
+\subsection{Extended evaluation protocol}
+The extended CI workflow adds six QuantLib boundary regimes across calls and puts, including near-zero maturity, near-zero volatility, negative rates, extreme moneyness, and long maturity. It compares the analytic engine with an independent formula, numerical engines, and finite-difference delta behavior.
+
+For SimpleFIX, the workflow executes one deterministic profile from each of four message families and applies six malformed-message transformations. It characterizes parser outcomes without automatically classifying acceptance as a defect. For ISO 20022, it applies identifier-length, decimal-facet, invalid-date, ordering, unexpected-element, and invalid-enumeration mutations to bounded pain and pacs profiles. The two validators use the same XSD definitions and therefore provide implementation diversity rather than independent semantic specifications.
+
+The workflow archives exact versions and raw JSON. A result enters the paper as a software defect only after independent upstream confirmation. Otherwise it remains a conformance, boundary, or parser-behavior observation.
+
+\section{FinSpace Use and Operational Scope}
+FinSpace exposes rank-addressed scenario spaces through a public Python API. A typical workflow defines a finite schema, obtains its exact cardinality, partitions or samples ranks, evaluates the corresponding records, and records results in a schema-bound ledger. This is useful for quantitative model validation, FIX and payment-message QA, distributed risk grids, and audit-sensitive test campaigns.
+
+FinSpace is a poor fit when continuous stochastic processes, realistic correlations, adaptive counterexample search, unrestricted recursion, or minimal \(t\)-way suites govern the task. QuantLib and Strata remain the appropriate engines for pricing and risk analytics \cite{quantlib,strata}. Hypothesis remains stronger for shrinking and adaptive search, and ACTS remains stronger for compact interaction coverage.
+
+\section{Threats to Validity and Limitations}
+\paragraph{Construct validity.}
+Synthetic defect distributions approximate distinct testing objectives. They do not establish an industrial defect distribution. Simulated execution costs isolate load-balance behavior but cannot substitute for a heterogeneous cluster measurement.
+
+\paragraph{Baseline validity.}
+Feat and SciFe are the closest conceptual predecessors. The frozen first campaign includes Feat but not a direct SciFe execution. The reduced MDD baseline covers exact graph reduction and counting, not the complete knowledge-compilation ecosystem. A final venue submission would benefit from native SciFe and external d-DNNF/KUS adapters.
+
+\paragraph{Statistical validity.}
+The paired bootstrap respects complete seeded campaigns as independent units. The study still uses one synthetic domain for the redesigned defect comparison. Confidence intervals describe that design and do not license universal rankings.
+
+\paragraph{External validity.}
+SimpleFIX, QuantLib, and two ISO profiles represent bounded case studies. They do not cover complete FIX sessions, the QuantLib instrument catalogue, or the ISO 20022 standards catalogue. The validators share schemas. No new real-program defect has received upstream confirmation.
+
+\paragraph{Identity and integrity.}
+Ranks are dense schema-relative identifiers. Bit corruption often maps to another valid rank. Production transport requires version binding, a schema hash, and an integrity mechanism. Arbitrary schema edits cause rank churn.
+
+\paragraph{Execution replay.}
+A schema hash and rank reconstruct the object. They do not fix library versions, evaluation dates, calendars, market data, numerical tolerances, compiler behavior, or architecture. Execution replay requires a complete environment and oracle record.
+
+\section{Conclusion}
+PDRS provides a language-neutral systems realization of indexed finite-domain enumeration. It combines an external schema, canonical IR, independent runtimes, exact schema-relative identities, and reproducible campaign primitives. The underlying counting and ranking construction is established. The new evidence strengthens record semantics, comparison fairness, distributional analysis, workload balance, and artifact identity.
+
+The results identify a specific strength: exact indexing and duplicate-free rank allocation for large finite campaigns. They also establish clear boundaries. Object-uniform sampling does not dominate targeted generation, and contiguous intervals do not guarantee balanced execution cost. FinSpace demonstrates the framework in financial scenario and protocol workflows without replacing pricing engines, property-based testing, covering arrays, or stochastic simulation.
+
+\appendix
+\section{Reproduction Checklist}
+The artifact includes the frozen commit manifest, a pinned Python analysis environment, a Dockerfile, raw result generators, paired analysis, figure generation, LaTeX source, and checksums. Run:
+\begin{verbatim}
+cd paper/arxiv_v2
+python -m pip install -r requirements-lock.txt
+make reproduce
+\end{verbatim}
+The external finance job runs separately because it installs QuantLib, SimpleFIX, lxml, xmlschema, and pinned XSD sources. Zenodo archiving remains a repository-owner action; the manuscript must cite only the DOI that Zenodo actually mints.
+
+\bibliographystyle{plain}
+\bibliography{references}
+\end{document}
