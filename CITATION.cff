@@ -1,18 +1,18 @@
 cff-version: 1.2.0
-message: "Please cite this software and its accompanying paper when available."
+message: "Please cite this software and its accompanying paper."
 title: "Path-Dependent Radix Spaces"
 type: software
 authors:
   - family-names: "X"
     given-names: "Abdullah"
-version: 0.1.0
+version: 0.2.0
 date-released: 2026-08-02
 repository-code: "https://github.com/abdullah-x-bd/PDRS"
 license: MIT
 keywords:
-  - mixed radix
+  - dependent enumeration
   - enumerative coding
   - constrained schemas
   - ranking
   - unranking
-  - structured fuzzing
+  - structured testing
