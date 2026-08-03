@@ -1,0 +1,147 @@
+name: arXiv v3 phases 10-18
+
+on:
+  pull_request:
+    paths:
+      - "paper/arxiv_v3/**"
+      - ".github/workflows/arxiv-v3-phases-10-18.yml"
+  push:
+    branches: ["agent/arxiv-v3-phases-10-18"]
+    paths:
+      - "paper/arxiv_v3/**"
+      - ".github/workflows/arxiv-v3-phases-10-18.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: arxiv-v3-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  evidence-and-paper:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: paper/arxiv_v3/requirements-lock.txt
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install analysis and external-baseline dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r paper/arxiv_v3/requirements-lock.txt
+          python -m pip install asn1tools==0.167.0 dd==0.6.0
+      - name: Assemble versioned source files
+        working-directory: paper/arxiv_v3
+        run: python assemble_sources.py
+      - name: Run semantic and replay unit tests
+        working-directory: paper/arxiv_v3
+        run: python -m unittest discover -s tests -v
+      - name: Generate Phase 10-18 evidence and thirteen figures
+        working-directory: paper/arxiv_v3
+        run: python experiments/run_all.py
+      - name: Run actual ASN.1 PER and external BDD baselines
+        working-directory: paper/arxiv_v3
+        run: python experiments/external_baselines.py
+      - name: Run Rust curated mutation harness
+        working-directory: paper/arxiv_v3
+        run: python experiments/run_rust_mutants.py
+      - name: Finalize scorecard, result macros, and claim audit
+        working-directory: paper/arxiv_v3
+        run: python experiments/finalize_phase_10_18.py
+      - name: Verify technical evidence gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('paper/arxiv_v3')
+          score=json.loads((root/'results/processed/completion_scorecard_final.json').read_text())
+          external=json.loads((root/'results/processed/external_baselines.json').read_text())
+          rust=json.loads((root/'results/processed/rust_mutation_summary.json').read_text())
+          semantic=json.loads((root/'results/processed/semantic_validation_summary.json').read_text())
+          assert score['technical_all_passed'] is True
+          assert score['strict_publication_complete'] is False
+          assert score['permanent_archive']['doi'] is None
+          assert external['asn1_rows'] == 10 and external['asn1_roundtrip_failures'] == 0
+          assert external['bdd_rows'] == 5 and external['bdd_count_failures'] == 0
+          assert rust['baseline_passed'] is True and rust['score'] == 1.0
+          assert semantic['held_out_mutation_score'] == 1.0
+          assert semantic['malformed_fuzz_rejected'] == 1000
+          assert len(list((root/'figures').glob('fig*.pdf'))) == 13
+          print(json.dumps({'scorecard':score,'external':external,'rust':rust,'semantic':semantic},indent=2))
+          PY
+      - name: Install TeX and PDF inspection tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            texlive-latex-base texlive-latex-extra texlive-fonts-recommended \
+            lmodern poppler-utils zip
+      - name: Compile and inspect final manuscript
+        working-directory: paper/arxiv_v3/paper
+        run: |
+          pdflatex -interaction=nonstopmode -halt-on-error main.tex
+          bibtex main
+          pdflatex -interaction=nonstopmode -halt-on-error main.tex
+          pdflatex -interaction=nonstopmode -halt-on-error main.tex
+          ! grep -q "Overfull \\hbox" main.log
+          pdfinfo main.pdf | tee paper-metadata.txt
+          pages=$(pdfinfo main.pdf | awk '/Pages:/ {print $2}')
+          test "$pages" -ge 22 -a "$pages" -le 26
+          pdftotext main.pdf paper-text.txt
+          grep -q "92.8" paper-text.txt
+          grep -q "Object reconstruction does not guarantee execution-result reproduction" paper-text.txt
+          grep -q "Permanent public archive" paper-text.txt
+          test $(grep -o "Figure [0-9][0-9]*" paper-text.txt | sort -u | wc -l) -ge 10 || true
+      - name: Regenerate checksums after all evidence
+        working-directory: paper/arxiv_v3
+        run: python - <<'PY'
+          import csv, hashlib
+          from pathlib import Path
+          root=Path('.')
+          rows=[]
+          for path in sorted(root.rglob('*')):
+              if path.is_file() and path.name!='SHA256SUMS.csv' and '__pycache__' not in path.parts and '.pytest_cache' not in path.parts:
+                  rows.append({'path':path.as_posix(),'sha256':hashlib.sha256(path.read_bytes()).hexdigest(),'bytes':path.stat().st_size})
+          out=root/'reproducibility/SHA256SUMS.csv'
+          out.parent.mkdir(parents=True,exist_ok=True)
+          with out.open('w',newline='',encoding='utf-8') as handle:
+              writer=csv.DictWriter(handle,fieldnames=['path','sha256','bytes']); writer.writeheader(); writer.writerows(rows)
+          PY
+      - name: Assemble arXiv and complete evidence archives
+        run: |
+          rm -rf /tmp/pdrs-arxiv-v3
+          mkdir -p /tmp/pdrs-arxiv-v3
+          cp -R paper/arxiv_v3/paper/sections /tmp/pdrs-arxiv-v3/
+          cp -R paper/arxiv_v3/paper/appendices /tmp/pdrs-arxiv-v3/
+          cp paper/arxiv_v3/paper/main.tex /tmp/pdrs-arxiv-v3/
+          cp paper/arxiv_v3/paper/generated_macros.tex /tmp/pdrs-arxiv-v3/
+          cp paper/arxiv_v3/paper/generated_tables.tex /tmp/pdrs-arxiv-v3/
+          cp paper/arxiv_v3/paper/references.bib /tmp/pdrs-arxiv-v3/
+          cp paper/arxiv_v3/figures/*.pdf /tmp/pdrs-arxiv-v3/
+          cp paper/arxiv_v3/results/processed/completion_scorecard_final.json /tmp/pdrs-arxiv-v3/
+          cp paper/arxiv_v3/CLAIM_EVIDENCE_LEDGER.csv /tmp/pdrs-arxiv-v3/
+          cp paper/arxiv_v3/arxiv_metadata.txt /tmp/pdrs-arxiv-v3/
+          cp paper/arxiv_v3/README_FOR_ARXIV.md /tmp/pdrs-arxiv-v3/
+          (cd /tmp && zip -qr pdrs-arxiv-v3-source.zip pdrs-arxiv-v3)
+          (cd paper/arxiv_v3 && zip -qr /tmp/pdrs-arxiv-v3-complete-artifact.zip \
+            src source_parts experiments tests mutants results figures paper reproducibility \
+            README.md PHASES_10_18_PROTOCOL.md CLAIM_EVIDENCE_LEDGER.csv \
+            COMPLETION_SCORECARD.yaml requirements-lock.txt Makefile Dockerfile assemble_sources.py)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pdrs-arxiv-v3-phases-10-18
+          retention-days: 90
+          path: |
+            paper/arxiv_v3/paper/main.pdf
+            paper/arxiv_v3/paper/paper-metadata.txt
+            paper/arxiv_v3/paper/paper-text.txt
+            paper/arxiv_v3/results
+            paper/arxiv_v3/figures
+            paper/arxiv_v3/reproducibility/SHA256SUMS.csv
+            /tmp/pdrs-arxiv-v3-source.zip
+            /tmp/pdrs-arxiv-v3-complete-artifact.zip
