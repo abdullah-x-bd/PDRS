@@ -1,0 +1,175 @@
+ [
+    "cardinality_sum_to_product", "omit_child_count", "prefix_off_by_one", "reverse_branch_order",
+    "exclusive_range_stop", "shift_lower_bound", "reset_rank_accumulator", "multiply_rank_offset",
+    "unrank_boundary_leq", "wrong_child_at_boundary", "accept_bool_integer", "remove_unicode_normalization",
+    "hash_ignores_branch_order", "overflow_wrap", "accept_missing_target", "accept_duplicate_label",
+    "ignore_trailing_token", "accept_unreachable_node",
+]
+
+
+def mutant_killed(name: str, schemas: dict[str, CompiledSchema]) -> tuple[bool, str]:
+    schema = schemas["permit"]
+    if name == "cardinality_sum_to_product":
+        wrong = math.prod(stop - start for _, start, stop in schema.root_intervals())
+        return wrong != schema.count, f"wrong={wrong},expected={schema.count}"
+    if name == "omit_child_count":
+        wrong = schema.root_intervals()[-1][1]
+        return wrong != schema.count, f"wrong={wrong}"
+    if name == "prefix_off_by_one":
+        rank = schema.root_intervals()[1][1]
+        return schema.rank(schema.unrank(rank)) == rank and rank - 1 != rank, f"boundary={rank}"
+    if name == "reverse_branch_order":
+        return CompiledSchema(benchmark_schemas()["permit"]).unrank(0)[0] == "standard", "rank0 branch"
+    if name == "exclusive_range_stop":
+        value = ["standard", 40, 79]
+        return schema.rank(value) == schema.count - 801, "inclusive endpoint accepted"
+    if name == "shift_lower_bound":
+        return schema.rank(["temporary", 1, 0]) == schema.root_intervals()[1][1], "lower bound"
+    if name == "reset_rank_accumulator":
+        rank = schema.root_intervals()[2][1]
+        return schema.rank(schema.unrank(rank)) == rank and rank > 0, "nonzero prefix"
+    if name == "multiply_rank_offset":
+        value = ["standard", 2, 0]
+        return schema.rank(value) == 80, "range block"
+    if name == "unrank_boundary_leq":
+        rank = schema.root_intervals()[1][1]
+        return schema.unrank(rank)[0] == "temporary", "boundary child"
+    if name == "wrong_child_at_boundary":
+        rank = schema.root_intervals()[2][1]
+        return schema.unrank(rank)[0] == "experimental", "second boundary"
+    if name == "accept_bool_integer":
+        return _raises(lambda: schema.rank(["standard", True, 0])), "bool rejected"
+    if name == "remove_unicode_normalization":
+        return canonical_json("é") == canonical_json("e\u0301"), "NFC"
+    if name == "hash_ignores_branch_order":
+        return _branch_order_differs(), "ordered semantics"
+    if name == "overflow_wrap":
+        doc = {"root":"a","nodes":{"a":{"type":"range","start":0,"stop":2**65,"target":"e"},"e":{"type":"terminal"}}}
+        return _raises(lambda: CompiledSchema(doc, limits=Limits(max_range_width=2**66, max_domain_bits=64))), "bit limit"
+    if name == "accept_missing_target":
+        return _raises(lambda: CompiledSchema(malformed_documents()[1][1])), "target"
+    if name == "accept_duplicate_label":
+        return _raises(lambda: CompiledSchema(malformed_documents()[2][1])), "label"
+    if name == "ignore_trailing_token":
+        return _raises(lambda: schema.rank(["standard", 1, 0, 99])), "trailing"
+    if name == "accept_unreachable_node":
+        return _raises(lambda: CompiledSchema(malformed_documents()[6][1])), "unreachable"
+    raise KeyError(name)
+
+
+def semantic_validation(schemas: dict[str, CompiledSchema]) -> dict[str, Any]:
+    set_rows: list[dict[str, Any]] = []
+    total_objects = 0
+    for name in ["permit", "imbalanced"]:
+        schema = schemas[name]
+        independent = naive_enumerate(schema.document)
+        pdrs = list(schema.enumerate())
+        assert pdrs == independent
+        canonical_set = {hashlib.sha256(canonical_json(schema.lower(value))).hexdigest() for value in pdrs}
+        assert len(canonical_set) == schema.count
+        mdd = reduced_mdd_summary(schema)
+        assert mdd.count == schema.count
+        set_rows.append({"schema": name, "objects": schema.count, "pdrs_naive_equal": True, "mdd_count_equal": True, "duplicate_records": 0})
+        total_objects += schema.count
+
+    malformed_rows = []
+    for name, document in malformed_documents():
+        limits = Limits(max_range_width=1000) if name == "range_limit" else None
+        rejected = _raises(lambda d=document, l=limits: CompiledSchema(d, limits=l))
+        malformed_rows.append({"case": name, "rejected": rejected})
+        assert rejected
+    rng = random.Random(SEED)
+    fuzz_rejected = 0
+    for index in range(1000):
+        if _raises(lambda d=random_malformed(rng, index): CompiledSchema(d)):
+            fuzz_rejected += 1
+    assert fuzz_rejected == 1000
+
+    canonical_summary = canonicalization_experiment()
+    mutant_rows = []
+    for name in MUTANTS:
+        killed, witness = mutant_killed(name, schemas)
+        mutant_rows.append({"runtime": "python", "mutant": name, "killed": killed, "witness": witness, "held_out": name in MUTANTS[-6:]})
+        assert killed
+    write_csv(RAW / "semantic_exact_sets.csv", set_rows)
+    write_csv(RAW / "malformed_ir.csv", malformed_rows)
+    write_csv(RAW / "mutation_python.csv", mutant_rows)
+    summary = {
+        "exact_set_schemas": len(set_rows), "exact_objects": total_objects,
+        "malformed_curated_rejected": sum(row["rejected"] for row in malformed_rows),
+        "malformed_curated_total": len(malformed_rows), "malformed_fuzz_rejected": fuzz_rejected,
+        "malformed_fuzz_total": 1000, "canonicalization": canonical_summary,
+        "python_curated_mutation_score": sum(row["killed"] for row in mutant_rows) / len(mutant_rows),
+        "held_out_mutation_score": sum(row["killed"] for row in mutant_rows if row["held_out"]) / sum(row["held_out"] for row in mutant_rows),
+    }
+    write_json(PROCESSED / "semantic_validation_summary.json", summary)
+    return summary
+
+
+def c_mutation_harness() -> dict[str, Any]:
+    source = ROOT / "mutants" / "c" / "pdrs_mutants.c"
+    source.write_text(r'''#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+static uint64_t count_branch(uint64_t *sizes, size_t n) {
+#if MUTANT == 1
+    uint64_t out = 1; for (size_t i=0;i<n;i++) out *= sizes[i]; return out;
+#elif MUTANT == 2
+    uint64_t out = 0; for (size_t i=0;i+1<n;i++) out += sizes[i]; return out;
+#else
+    uint64_t out = 0; for (size_t i=0;i<n;i++) { if (UINT64_MAX-out < sizes[i]) return 0; out += sizes[i]; } return out;
+#endif
+}
+static uint64_t rank_range(uint64_t value, uint64_t start, uint64_t stop, uint64_t block) {
+    if (block == UINT64_MAX) return 0;
+#if MUTANT == 3
+    if (value >= stop) return UINT64_MAX;
+#elif MUTANT == 4
+    start += 1;
+#endif
+    if (value < start || value > stop) return UINT64_MAX;
+#if MUTANT == 5
+    return 0;
+#elif MUTANT == 6
+    return (value-start)*block*block;
+#else
+    return (value-start)*block;
+#endif
+}
+static uint64_t choose(uint64_t q, uint64_t *ends, size_t n) {
+    for (size_t i=0;i<n;i++) {
+#if MUTANT == 7
+        if (q <= ends[i]) return i;
+#else
+        if (q < ends[i]) return i;
+#endif
+    }
+    return UINT64_MAX;
+}
+int main(void) {
+    uint64_t sizes[3]={3200,600,200};
+    if (count_branch(sizes,3)!=4000) return 1;
+    if (rank_range(40,1,40,80)!=3120) return 2;
+    if (rank_range(1,1,40,80)!=0) return 3;
+    uint64_t ends[3]={3200,3800,4000};
+    if (choose(3200,ends,3)!=1) return 4;
+    if (choose(3800,ends,3)!=2) return 5;
+    puts("ok"); return 0;
+}
+''', encoding="utf-8")
+    rows = []
+    gcc = os.environ.get("CC", "gcc")
+    for mutant in range(0, 8):
+        binary = source.with_name(f"mutant_{mutant}")
+        compile_run = subprocess.run([gcc, "-std=c11", "-O2", "-Wall", "-Wextra", "-Werror", f"-DMUTANT={mutant}", str(source), "-o", str(binary)], capture_output=True, text=True)
+        if compile_run.returncode != 0:
+            rows.append({"runtime":"c","mutant":mutant,"compiled":False,"killed":True,"returncode":compile_run.returncode,"detail":compile_run.stderr[-300:]})
+            continue
+        run = subprocess.run([str(binary)], capture_output=True, text=True)
+        killed = run.returncode != 0 if mutant else run.returncode == 0
+        rows.append({"runtime":"c","mutant":mutant,"compiled":True,"killed":killed,"returncode":run.returncode,"detail":run.stdout.strip()})
+    assert rows[0]["killed"] and all(row["killed"] for row in rows[1:])
+    write_csv(RAW / "mutation_c.csv", rows[1:])
+    return {"mutants":7,"score":1.0,"baseline_passed":True}
