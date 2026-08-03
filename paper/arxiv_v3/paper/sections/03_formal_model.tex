@@ -1,0 +1,93 @@
+\section{Formal Model}\label{sec:formal}
+\subsection{Typed canonical values}
+Language runtimes disagree on several default equality rules. Python treats \texttt{True == 1}; JSON parsers can retain the first or last duplicate key; Unicode strings can have distinct byte sequences for the same normalized text; floating-point NaNs do not obey ordinary equality. A persistent schema identity requires explicit canonical semantics.
+
+We define the typed value algebra
+\begin{equation}
+ v ::= \texttt{null}\mid \texttt{bool}(b)\mid \texttt{int}(z)\mid
+ \texttt{decimal}(s)\mid \texttt{string}(u)\mid \texttt{date}(d)
+ \mid \texttt{list}(v^*)\mid \texttt{map}((u,v)^*).
+\end{equation}
+Strings use Unicode NFC. Decimals use a normalized finite textual form. Signed zero maps to zero. NaN and infinity are rejected. Dates use ISO calendar dates. Map keys use normalized Unicode and sorted order. Duplicate source keys are rejected before canonicalization. Branch order remains semantically significant and therefore contributes to the schema hash.
+
+\begin{definition}[Well-formed schema]
+A schema \(S=(V,E,r,\tau,\prec)\) is well formed when: (i) \((V,E)\) is finite and acyclic; (ii) every node is reachable from the root \(r\); (iii) every edge target exists; (iv) every choice has at least one branch with a unique normalized typed label; (v) every range has inclusive integer bounds \(a\le b\); (vi) every root-to-terminal path uses each record field at most once; (vii) every path reaches a terminal; and (viii) configured node, depth, range-width, and cardinality-bit limits hold.
+\end{definition}
+
+The field-uniqueness condition supports injective lowering into ordinary maps. A frontend with repeated fields can use an ordered record or list representation, but it must define a separate lowering theorem.
+
+\subsection{Token denotation}
+The node constructors are a terminal \(T\), an ordered choice
+\(Q[(a_0,v_0),\ldots,(a_{k-1},v_{k-1})]\), and a range \(G[a,b,v]\). Their token denotations are
+\begin{align}
+\D(T) &= \{\epsilon\},\\
+\D(Q) &= \biguplus_{i=0}^{k-1} \{a_i\}\mathbin\Vert \D(v_i),\\
+\D(G[a,b,v]) &= \biguplus_{z=a}^{b} \{z\}\mathbin\Vert \D(v).
+\end{align}
+Typed distinctness and unique branch labels make each union disjoint.
+
+\subsection{Cardinality}
+Let \(C(v)=|\D(v)|\). Reverse topological evaluation gives
+\begin{align}
+C(T)&=1,\\
+C(Q)&=\sum_{i=0}^{k-1}C(v_i),\\
+C(G[a,b,v])&=(b-a+1)C(v).
+\end{align}
+The compiler rejects an intermediate count whose bit length exceeds its configured bound. The Python runtime uses arbitrary-precision integers. The C and Rust runtimes use checked unsigned 64-bit arithmetic and reject overflow.
+
+\subsection{Rank and unrank}
+For choice prefixes \(P_i=\sum_{j<i}C(v_j)\), define
+\begin{align}
+\rank_T(\epsilon)&=0,\\
+\rank_Q(a_i\Vert x)&=P_i+\rank_{v_i}(x),\\
+\rank_G(z\Vert x)&=(z-a)C(v)+\rank_v(x).
+\end{align}
+Unrank selects the unique choice interval \([P_i,P_i+C(v_i))\). At a range node with child size \(c\), Euclidean division \(q=dc+q'\) recovers \(z=a+d\) and child rank \(q'\).
+
+\begin{theorem}[Token-level bijection]
+For every well-formed node \(v\), rank and unrank are mutual inverses between \(\D(v)\) and \([0,C(v))\).
+\end{theorem}
+\begin{proof}
+Reverse-topological structural induction suffices. The terminal has one object and one rank. Choice prefix intervals form a disjoint cover of \([0,C(Q))\); adding and subtracting the same prefix reduces each inverse identity to the child. Range intervals of width \(C(v)\) form a disjoint cover; Euclidean quotient and remainder recover the selected range value and child rank. The induction hypothesis completes both identities.
+\end{proof}
+
+\subsection{Record lowering}
+Let \(L_S:\D_{\mathrm{token}}(S)\rightarrow\D_{\mathrm{record}}(S)\) lower a token path to a typed record.
+
+\begin{theorem}[Record-level bijection]
+If \(L_S\) is injective over the token denotation, then \(L_S\circ\unrank_S\) is a bijection from \([0,N_S)\) to the record domain, and \(\rank_S\circ L_S^{-1}\) is its inverse.
+\end{theorem}
+\begin{proof}
+The token theorem supplies a bijection. Injective lowering maps distinct token paths to distinct records and is surjective onto the record domain by definition. Composition preserves bijectivity.
+\end{proof}
+
+The audit compiler enforces injectivity through typed values, NFC normalization, unique normalized labels, and path-wise field uniqueness. The semantic experiment checks record digests exhaustively for the smaller benchmark domains.
+
+\subsection{Sampling}
+A uniform random rank yields an object-uniform sample by bijection. For a budget \(B\le N\), the audit implementation uses Floyd's algorithm. For \(j=N-B,\ldots,N-1\), it draws \(t\) uniformly from \([0,j]\); it inserts \(j\) when \(t\) already appears in the selected set and inserts \(t\) otherwise. The algorithm selects every \(B\)-element subset with equal probability and uses \(O(B)\) time and memory. A final shuffle randomizes presentation order.
+
+Object-uniform sampling gives each root branch probability proportional to its object count. Branch-uniform sampling assigns equal branch mass. Boundary-biased and coverage-guided methods use different objectives. The evaluation treats those distributions separately.
+
+\subsection{Complexity}
+Let \(d\) be active path depth, \(k\) the maximum choice width, and \(b=\lceil\log_2N\rceil\). Let \(A(b)\), \(C(b)\), and \(D(b)\) denote big-integer addition, comparison, and division costs. Compilation performs \(O(|V|+|E|)\) graph operations plus cardinality arithmetic. Prefix endpoints permit binary-search choice selection, giving
+\begin{equation}
+T_{\mathrm{unrank}}=O\left(d[\log k\,C(b)+A(b)+D(b)]\right).
+\end{equation}
+Rank uses branch lookup and arithmetic on at most \(b\)-bit integers. Native timings depend on compiler, architecture, branch layout, and cache behavior.
+
+\subsection{Identity, integrity, and replay}
+A fixed-width schema-relative identity uses \(\lceil\log_2N\rceil\) bits. A practical message binds more information:
+\begin{equation}
+M=\text{frame}\Vert c\Vert H(S)\Vert r\Vert I,
+\end{equation}
+where \(c\) is the canonicalization version, \(H(S)\) is the schema identity, \(r\) is the rank, and \(I\) is an integrity field. A checksum detects accidental corruption. A message authentication code provides authenticity under a declared key and threat model. The rank itself provides neither.
+
+Object replay uses
+\begin{equation}
+I_{\mathrm{object}}=(c,H(S),r,V_P,C_P),
+\end{equation}
+where \(V_P\) and \(C_P\) identify the PDRS version and source commit. Execution replay uses
+\begin{equation}
+I_{\mathrm{execution}}=(I_{\mathrm{object}},V_F,C_F,A,E,O,X,P),
+\end{equation}
+where \(V_F,C_F\) identify FinSpace, \(A\) identifies the adapter, \(E\) the environment, \(O\) the oracle, \(X\) external data, and \(P\) execution parameters. An execution can reproduce the object while failing an environment or oracle check.
