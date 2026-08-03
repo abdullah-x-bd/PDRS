@@ -1,0 +1,10 @@
+claim_id,claim,evidence,status,boundary
+V2-C01,The audit compiler is a bijection over well-formed token domains,formal proof; tests; independent naive enumerator,supported,Record-level result additionally requires injective lowering
+V2-C02,Typed lowering is injective for the implemented audit language,path-wise field uniqueness; typed values; exhaustive record uniqueness,supported,Richer FinSpace values require equivalent canonicalization controls
+V2-C03,Floyd sampling selects a uniform subset without replacement,standard algorithm statement; full-domain test,supported,Random number generator semantics are versioned separately
+V2-C04,Object-uniform sampling is not universally optimal,eight-distribution defect experiment,supported on benchmark,No universal industrial defect distribution is claimed
+V2-C05,Disjoint allocation does not imply balanced execution cost,five-policy heterogeneous-cost experiment,supported on benchmark,Cluster execution remains future external validation
+V2-C06,Contiguous intervals are not uniquely capable of zero overlap,all five coordinated policies assign unique complete rank sets,supported,Coordination and replay costs differ
+V2-C07,PDRS contributes systems engineering rather than new ranking mathematics,closest-work review and capability matrix,supported,Absolute firstness is not claimed
+V2-C08,Schema hash plus rank provides object replay,formal interface and tests,supported,Execution replay requires environment oracle and data identities
+V2-C09,Extended finance workflows improve boundary and mutation coverage,GitHub Actions real-program-v2 artifact,pending workflow,No previously unknown defect claim without upstream confirmation

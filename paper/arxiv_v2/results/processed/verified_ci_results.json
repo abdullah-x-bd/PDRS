@@ -1,0 +1,68 @@
+{
+  "workflow_run": 30818616834,
+  "head_sha": "f3acd7958dbdf914ff4c654c00246b2d37c7a05f",
+  "synthetic_artifact": {
+    "id": 8857846904,
+    "digest": "sha256:efc3aae567c5ea8a8b0197fa8fa53837937434163ebb249cbdb033711b7ba12c"
+  },
+  "real_program_artifact": {
+    "id": 8857850017,
+    "digest": "sha256:0e41e40ccc8f81b7295efe4b5019fe3ccaacc1fea60f2ea929218a48fb014bfb"
+  },
+  "paper_draft_artifact": {
+    "id": 8857895775,
+    "digest": "sha256:8c78fa15a6a8287ec892125266bb18d16986f530763c59ab5ea45c2ac6b16fe7"
+  },
+  "semantic": {
+    "generated_schemas": 150,
+    "exhaustive_objects_checked": 3428,
+    "round_trip_failures": 0,
+    "lowering_collisions": 0,
+    "malformed_cases": 7,
+    "malformed_rejected": 7
+  },
+  "defect_statistics": {
+    "paired_comparisons": 96,
+    "pdrs_supported_advantages": 1,
+    "comparator_supported_advantages": 13,
+    "uncertain": 82,
+    "pdrs_supported_case": "pairwise_interaction at budget 1000 versus boundary_biased",
+    "direct_limit": "No universal defect-discovery superiority is supported."
+  },
+  "distributed": {
+    "all_policies_overlap": 0,
+    "contiguous_cost_cv": 0.8009238181549706,
+    "strided_cost_cv": 0.09083474711585626,
+    "hash_cost_cv": 0.02708767780293255,
+    "permuted_cost_cv": 0.0023726485237692647,
+    "central_shuffle_cost_cv": 0.01338316848432802
+  },
+  "real_programs": {
+    "quantlib": {
+      "version": "1.43",
+      "declared_boundary_cases": 12,
+      "completed_rows": 10,
+      "exceptions": 2,
+      "exception_regime": "near_zero_volatility",
+      "exception_text": "RuntimeError: negative probability",
+      "classification": "reproducible CRR numerical-engine boundary observation, not a confirmed defect"
+    },
+    "simplefix": {
+      "version": "1.0.17",
+      "valid_profiles_parsed": 4,
+      "mutation_probes": 24,
+      "message_outcomes": 16,
+      "none_outcomes": 4,
+      "exception_outcomes": 4,
+      "classification": "parser behavior, not session-level FIX conformance"
+    },
+    "iso20022": {
+      "valid_profiles": 2,
+      "mutation_probes": 12,
+      "rejected_by_both": 10,
+      "validator_disagreements": 0,
+      "accepted_probe": "amount 1.001 in both profiles",
+      "classification": "the evaluated XSD facets permit this precision; it is not an invalid mutation"
+    }
+  }
+}

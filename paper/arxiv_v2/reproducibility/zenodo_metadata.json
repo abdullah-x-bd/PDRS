@@ -1,0 +1,33 @@
+{
+  "title": "PDRS: A Cross-Language Compiler for Rank-Addressable Finite Structured Domains",
+  "upload_type": "software",
+  "description": "Reproducible source, experiments, figures, and manuscript for the PDRS arXiv v2 revision.",
+  "creators": [
+    {
+      "name": "X, Abdullah",
+      "affiliation": "Independent Researcher, New Delhi, India"
+    }
+  ],
+  "license": "MIT",
+  "keywords": [
+    "dependent enumeration",
+    "combinatorial ranking",
+    "structured testing",
+    "distributed testing",
+    "financial software"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/abdullah-x-bd/PDRS",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://github.com/abdullah-x-bd/FinSpace",
+      "relation": "references",
+      "scheme": "url"
+    }
+  ],
+  "doi": null,
+  "notes": "The repository owner must create an immutable GitHub release after CI succeeds. Zenodo will then mint the DOI."
+}

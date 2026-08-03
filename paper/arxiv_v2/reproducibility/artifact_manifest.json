@@ -1,0 +1,33 @@
+{
+  "artifact_name": "PDRS arXiv v2 phases 1-9",
+  "canonical_project_name": "Path-Dependent Radix Spaces",
+  "freeze_date": "2026-08-03",
+  "pdrs": {
+    "repository": "abdullah-x-bd/PDRS",
+    "frozen_evidence_commit": "a2f0449c254f8d222a7fcb62b34367ec532ce7a9",
+    "published_package": "pdrs==0.2.0",
+    "repository_evidence_label": "Version 0.3 evidence",
+    "interpretation": "The paper identifies the evaluated source by commit SHA. The repository evidence label is not treated as a separately published PyPI version."
+  },
+  "finspace": {
+    "repository": "abdullah-x-bd/FinSpace",
+    "frozen_commit": "3760f1480e3ef19e4ff0928ddd6938e04045ab1b",
+    "published_package": "finspace==0.1.0"
+  },
+  "revision_branch": "agent/arxiv-v2-phases-1-9",
+  "canonicalization_version": "pdrs-arxiv-v2-typed-nfc-1",
+  "synthetic_seed": 20260803,
+  "python": "3.12.13",
+  "synthetic_lockfile": "requirements-lock.txt",
+  "container": "Dockerfile",
+  "one_command_reproduction": "make reproduce",
+  "external_evidence": {
+    "path": "results/real_program_v2",
+    "policy": "The manuscript can cite extended external-program numbers only after the GitHub Actions workflow completes successfully and archives its output."
+  },
+  "archive": {
+    "zenodo_doi": null,
+    "status": "pending repository-owner Zenodo GitHub integration and immutable GitHub release",
+    "prohibition": "No DOI is claimed until Zenodo actually mints it."
+  }
+}

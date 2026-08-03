@@ -1,0 +1,24 @@
+# Submission checklist
+
+- [x] Canonical project name is Path-Dependent Radix Spaces
+- [x] Closest prior work includes SciFe and Feat
+- [x] Knowledge-compilation comparison is explicit and qualified
+- [x] Mathematical foundation and systems novelty are separated
+- [x] Pareto-frontier claim removed
+- [x] Typed canonical values and lowering injectivity formalized
+- [x] Big-integer complexity included
+- [x] Sampling-without-replacement algorithm specified
+- [x] Object replay separated from execution replay
+- [x] Eight defect distributions implemented
+- [x] Fair coordinated distributed baselines implemented
+- [x] Heterogeneous execution costs evaluated
+- [x] Campaign-level paired bootstrap implemented
+- [x] Extended real-program protocol implemented
+- [x] Exact commit freeze recorded
+- [x] One-command reproduction and Dockerfile included
+- [x] No placeholder DOI claimed
+- [ ] GitHub Actions synthetic job green
+- [ ] GitHub Actions paper job green
+- [ ] GitHub Actions external-program job green
+- [ ] Successful workflow artifacts downloaded and inspected
+- [ ] Actual Zenodo DOI inserted after immutable release

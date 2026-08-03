@@ -1,0 +1,27 @@
+{
+  "artifact_name": "PDRS arXiv evidence revision v2",
+  "generated_utc": "2026-08-03T09:20:00Z",
+  "pdrs": {
+    "repository": "https://github.com/abdullah-x-bd/PDRS",
+    "base_commit": "272602cc41bc75b37e54f4d0cefb7af603419c1c",
+    "published_package": "pdrs==0.2.0",
+    "paper_branch": "agent/arxiv-v2-phases-1-9"
+  },
+  "finspace": {
+    "repository": "https://github.com/abdullah-x-bd/FinSpace",
+    "base_commit": "3760f1480e3ef19e4ff0928ddd6938e04045ab1b",
+    "published_package": "finspace==0.1.0"
+  },
+  "historical_evidence": {
+    "sota_commit": "d05fa968ed555e4858b2f4d2164387f01d605d8e",
+    "real_program_commit": "08c58bc9c6ae6cd067f06027f4ad30370f6dc6c8",
+    "native_commit": "fe92c2563bd5b2a7da931d66a9beda1d42d04aa2"
+  },
+  "new_evidence": {
+    "seed": 20260803,
+    "synthetic_status": "completed locally and reproducible",
+    "real_program_v2_status": "implemented; external dependency CI required before numerical claims enter the paper"
+  },
+  "version_policy": "Commit SHAs are the authoritative evidence identity. Package versions identify public installation artifacts. No result is attributed to a moving main branch.",
+  "doi_status": "Zenodo DOI requires repository-owner authorization after merge and is pending."
+}

@@ -1,0 +1,13 @@
+results/raw/
+results/processed/*.json
+results/processed/hierarchical_bootstrap.csv
+results/processed/phase_1_9_summary.json
+figures/*.pdf
+reproducibility/SHA256SUMS.csv
+paper/main.aux
+paper/main.bbl
+paper/main.blg
+paper/main.log
+paper/main.out
+paper/main.pdf
+paper/paper-metadata.txt

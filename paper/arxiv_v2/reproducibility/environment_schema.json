@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PDRS execution replay record",
+  "type": "object",
+  "required": [
+    "canonicalization_version",
+    "schema_hash",
+    "rank",
+    "pdrs_commit",
+    "adapter_version",
+    "environment_hash",
+    "oracle_configuration_hash"
+  ],
+  "properties": {
+    "canonicalization_version": {"type": "string"},
+    "schema_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "rank": {"type": "integer", "minimum": 0},
+    "pdrs_commit": {"type": "string"},
+    "finspace_commit": {"type": ["string", "null"]},
+    "adapter_version": {"type": "string"},
+    "environment_hash": {"type": "string"},
+    "oracle_configuration_hash": {"type": "string"},
+    "external_data_snapshot": {"type": ["string", "null"]},
+    "checksum_or_mac": {"type": ["string", "null"]}
+  },
+  "additionalProperties": false
+}
