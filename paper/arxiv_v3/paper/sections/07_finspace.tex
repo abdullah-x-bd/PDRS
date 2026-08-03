@@ -1,0 +1,36 @@
+\section{FinSpace Case Study}\label{sec:finspace}
+\subsection{Role of FinSpace}
+FinSpace is an application and deployment layer. It compiles finance-oriented record schemas to PDRS, maps ranks back to records, and coordinates target libraries. It does not constitute a separate theoretical contribution. Its purpose is to demonstrate how stable scenario identities and campaign primitives can enter financial software workflows.
+
+\subsection{Quantitative model validation}
+A model-validation team can define finite grids over instrument class, currency, engine, maturity, rate, volatility, strike, tolerance, and market regime. Conditional fields prevent invalid combinations. Each valid case receives one rank. A worker ledger records the exact interval or permuted rank set it processed. A failed price or oracle check is reported with its object and execution identities.
+
+FinSpace does not improve the complexity of the target pricing method. It can reduce duplicate scenario evaluation and improve recovery accounting. It can also expose systematic gaps by reporting the exact fraction of the declared domain that completed.
+
+\subsection{FIX message testing}
+A FIX schema can condition fields on message type, side, order type, and session state. FinSpace can generate valid application-layer messages, boundary values, or selected malformed records. PDRS ranks make the message content reproducible. Session sequencing, retransmission, persistence, and counterparty behavior remain outside a simple message parser and require a fuller FIX engine.
+
+\subsection{ISO 20022 conformance}
+ISO profiles can bind message family, currency, amount, settlement date, priority, and optional groups. FinSpace records the profile schema and rank. XML generation and XSD validation occur in adapters. Business rules that exceed XSD constraints require separate oracles. A validator disagreement must preserve both validator versions and the exact XSD snapshot.
+
+\subsection{Checkpointed orchestration}
+The ledger stores object identity separately from execution identity. The object table contains canonicalization version, schema hash, rank, PDRS version and commit, and canonical object digest. The execution table contains FinSpace version and commit, adapter name and version, environment hash, oracle hash, external-data snapshot, execution-parameter hash, result hash, and status.
+
+A migration table versions the database schema. Existing rows can be marked \texttt{object-replay-only} when they lack execution evidence. SQLite WAL mode supports durable local campaigns. Distributed databases can implement the same logical schema when cluster concurrency exceeds SQLite's design scope.
+
+\subsection{Replay commands}
+The proposed CLI exposes five operations:
+\begin{verbatim}
+finspace replay-object CASE_ID
+finspace verify-object CASE_ID
+finspace replay-execution CASE_ID
+finspace verify-environment CASE_ID
+finspace export-manifest CASE_ID
+\end{verbatim}
+Execution replay returns explicit states: \texttt{reproduced}; adapter, environment, and oracle mismatches; unavailable external data; and result divergence. The interface refuses to report a reproduced execution when only the object can be reconstructed.
+
+\subsection{Intended users}
+The strongest intended users are quantitative model-validation teams, financial-software QA teams, distributed risk-grid operators, payment-message developers, and researchers studying constrained generation. Ordinary finance users who need pricing, portfolio optimization, forecasting, or continuous Monte Carlo simulation do not need PDRS or FinSpace.
+
+\subsection{Operational limitations}
+FinSpace currently uses bounded profiles. It does not cover the complete FIX or ISO standards. It does not infer realistic probability models. It does not model continuous stochastic processes. It does not guarantee stable ranks across arbitrary schema changes. It does not provide a distributed scheduler. Its value depends on a workflow that benefits from exact finite identities and deterministic campaign accounting.
