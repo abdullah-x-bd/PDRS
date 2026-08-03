@@ -1,0 +1,30 @@
+\section{Completion Assessment}\label{sec:scorecard}
+The artifact evaluates completion through machine-readable checks rather than a narrative declaration. A check can pass only when its named evidence file exists and an executable invariant succeeds. The internal Phase 10--18 run passes 21 technical checks. The final CI workflow adds actual ASN.1 PER round trips, an external BDD count, and Rust mutation execution before it builds the submission package.
+
+\begin{table}[t]
+\centering\small
+\caption{Strict completion assessment. ``External gate'' denotes an action or confirmation that cannot be inferred from local source alone.}
+\label{tab:scorecard}
+\begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{.25\linewidth}>{\raggedright\arraybackslash}p{.55\linewidth}l}
+\toprule
+Area & Executable requirement & State \\
+\midrule
+Prior work and novelty & SciFe, Feat, knowledge compilation, constrained generation, and the mathematical/systems distinction appear in the paper and capability data. & Pass \\
+Formal semantics & Typed values, well-formedness, injective lowering, bit complexity, and native limits are defined and tested. & Pass \\
+Baselines & A dependent enumerator, reduced MDD, actual PER, and external BDD count execute where applicable. & CI gate \\
+Defect and distribution studies & Eight distributions, equal-attempt comparisons, cost-normalized measures, and paired campaign analysis are preserved. & Pass \\
+Distributed execution & Duplication, load balance, coordination, replayability, and recovery are measured. & Pass \\
+Real programs & QuantLib, SimpleFIX, and ISO 20022 boundary or mutation observations are preserved without automatic defect classification. & Pass \\
+Density and integrity & Fixed identity, expected payload, complete-message overhead, and corruption detection are separated. & Pass \\
+Implementation validation & Curated Python, C, and Rust mutants, malformed IR, canonicalization, and exact-set checks execute. & CI gate \\
+Replay & Object identity and execution identity use distinct records and verification outcomes. & Pass \\
+Figures and claims & Thirteen vector figures regenerate from evidence; prohibited promotional claims fail the build. & Pass \\
+Reproducibility & Lockfile, container, one-command build, environment records, and checksums are present. & Pass \\
+Permanent public archive & An immutable release exists and Zenodo has returned a resolving DOI for that exact release. & External gate \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The permanent-archive row is intentionally separate. Repository contents cannot establish that Zenodo has archived a release or minted a resolving DOI. The source therefore leaves the DOI empty until that event occurs. The paper is technically reproducible before the DOI exists, while the strict public-artifact criterion remains pending until the repository owner completes and verifies the archive.
+
+Historical defect evidence follows the same rule. The study records a QuantLib numerical-boundary exception and parser or validator behavior, but it does not convert these observations into confirmed historical defects. The held-out curated mutation set provides strong controlled evidence, not a substitute for upstream-confirmed regressions. A later version may add historical defects only when vulnerable and corrected upstream versions reproduce the documented behavior.
