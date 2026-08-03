@@ -1,14 +1,17 @@
-.PHONY: test evidence external rust finalize paper reproduce reproduce-full clean
+.PHONY: assemble test evidence external rust finalize paper reproduce reproduce-full clean
 PYTHON ?= python
 BIBTEX ?= bibtex
 
-test:
+assemble:
+	$(PYTHON) assemble_sources.py
+
+test: assemble
 	$(PYTHON) -m unittest discover -s tests -v
 
-evidence:
+evidence: assemble
 	$(PYTHON) experiments/run_all.py
 
-external:
+external: assemble
 	$(PYTHON) experiments/external_baselines.py
 
 rust:
@@ -32,4 +35,5 @@ reproduce-full: test evidence external rust finalize paper
 
 clean:
 	rm -rf results/raw/* results/processed/* figures/*
+	rm -f src/model.py experiments/run_all.py
 	rm -f paper/*.aux paper/*.bbl paper/*.blg paper/*.log paper/*.out paper/*.pdf
