@@ -1,0 +1,21 @@
+version: 3
+requirements:
+  density:
+    evidence: [results/raw/density_payload_sizes.csv, results/raw/density_expected_lengths.csv, results/raw/density_self_contained.csv]
+    required: [fixed_identity, expected_length, self_contained_message, actual_per, arithmetic, rans, decision_diagram, tagged_serialization]
+  semantics:
+    evidence: [results/raw/semantic_exact_sets.csv, results/raw/malformed_ir.csv, results/raw/canonicalization_matrix.csv]
+    required: [independent_oracle, malformed_rejection, canonicalization]
+  mutation:
+    evidence: [results/raw/mutation_python.csv, results/raw/mutation_c.csv, results/raw/mutation_rust.csv]
+    required: [python_score_1, c_applicable_score_1, rust_applicable_score_1, held_out_score_1]
+  replay:
+    evidence: [results/processed/replay_summary.json]
+    required: [object_identity, execution_identity, mismatch_states]
+  paper:
+    evidence: [paper/main.pdf, figures]
+    required: [research_question_structure, thirteen_figures, direct_limitations, claim_audit]
+  archive:
+    evidence: []
+    required: [immutable_release, resolving_zenodo_doi]
+    status: external_owner_action_required
