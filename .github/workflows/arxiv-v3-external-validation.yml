@@ -1,0 +1,39 @@
+name: arXiv v3 external validation
+on:
+  pull_request:
+    paths: ["paper/arxiv_v3_ci/**", ".github/workflows/arxiv-v3-external-validation.yml"]
+  push:
+    branches: ["agent/arxiv-v3-external-validation"]
+    paths: ["paper/arxiv_v3_ci/**", ".github/workflows/arxiv-v3-external-validation.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  per-bdd-rust:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: dtolnay/rust-toolchain@stable
+      - run: python -m pip install asn1tools==0.167.0 dd==0.6.0
+      - run: python paper/arxiv_v3_ci/run_external.py
+      - name: Verify evidence gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          s=json.loads(Path('paper/arxiv_v3_ci/results/processed/ci_summary.json').read_text())
+          assert s['asn1_rows']==10 and s['asn1_roundtrip_failures']==0
+          assert s['bdd_rows']==5 and s['bdd_count_failures']==0
+          assert s['rust_mutants']==7 and s['rust_mutation_score']==1.0
+          assert s['rust_baseline_passed'] is True
+          print(json.dumps(s,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arxiv-v3-external-validation
+          retention-days: 90
+          path: paper/arxiv_v3_ci/results
