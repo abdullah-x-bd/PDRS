@@ -1,0 +1,21 @@
+\section{Reproduction and Completion Scorecard}
+The Phase 10--18 artifact runs with:
+\begin{verbatim}
+python -m pip install -r requirements-lock.txt
+make reproduce
+\end{verbatim}
+The command executes unit tests, regenerates the Phase 10--18 observations, rebuilds all 13 figures, generates manuscript macros, compiles the paper, checks for overfull boxes, and writes SHA-256 checksums. Separate CI jobs install ASN.1 and BDD dependencies, compile Rust mutants, execute the FinSpace replay tests, and archive the outputs.
+
+The machine-readable scorecard currently records \ScorecardPassed\ of \ScorecardTotal\ internal checks as passing. The permanent DOI row remains external until the repository owner creates an immutable release and Zenodo mints an actual DOI. The source does not contain a placeholder DOI.
+
+The final archive should contain:
+\begin{itemize}
+  \item exact PDRS and FinSpace commits and public package versions;
+  \item source schemas and canonicalization specification;
+  \item raw and processed observations;
+  \item mutation sources and reports;
+  \item environment and external-data manifests;
+  \item all vector figures and generating scripts;
+  \item LaTeX source, compiled PDF, and bibliography;
+  \item checksums and the Zenodo DOI.
+\end{itemize}
