@@ -1,0 +1,92 @@
+pace(.9,.1,len(labels))
+    for i,(label,y) in enumerate(zip(labels,ys)):
+        ax.text(.5,y,label,ha="center",va="center",fontsize=12,bbox=dict(boxstyle="round,pad=.45",facecolor="white",edgecolor=PALETTE[i%len(PALETTE)],linewidth=1.6))
+        if i<len(labels)-1: ax.annotate("",xy=(.5,ys[i+1]+.045),xytext=(.5,y-.045),arrowprops=dict(arrowstyle="->",linewidth=1.4))
+    ax.set_title("PDRS compilation and execution architecture",fontsize=14)
+    fig.tight_layout(); fig.savefig(FIGURES/"fig01_architecture.pdf"); fig.savefig(FIGURES/"fig01_architecture.svg"); plt.close(fig)
+
+
+def plot_prior_work() -> None:
+    systems=["PDRS","SciFe","Feat","MDD/KC","Hypothesis","ACTS"]
+    capabilities=["Dependent domains","Exact count","Rank/unrank","No-replacement","Disjoint allocation","Cross-language IR","Campaign ledger"]
+    matrix=np.array([
+        [1,1,1,.7,.8,.7], [1,1,1,1,0,.3], [1,1,1,.6,0,0], [1,1,1,.6,0,0], [1,.8,.8,.7,.4,.4], [1,0,0,0,0,0], [1,0,0,0,.6,0]
+    ])
+    fig,ax=plt.subplots(figsize=(9,5)); ax.imshow(matrix,cmap="Greys",vmin=0,vmax=1,aspect="auto")
+    ax.set_xticks(range(len(systems)),systems); ax.set_yticks(range(len(capabilities)),capabilities)
+    for i in range(matrix.shape[0]):
+        for j in range(matrix.shape[1]): ax.text(j,i,{1:"Yes",0:"No"}.get(matrix[i,j],"Partial"),ha="center",va="center",fontsize=8,color="white" if matrix[i,j]>.6 else "black")
+    ax.set_title("Capability comparison with explicitly different objectives")
+    fig.tight_layout(); fig.savefig(FIGURES/"fig02_prior_work_matrix.pdf"); fig.savefig(FIGURES/"fig02_prior_work_matrix.svg"); plt.close(fig)
+
+
+def plot_compilation() -> None:
+    v2=ROOT.parent/"arxiv_v2/results/raw/compilation_scalability.csv"; df=pd.read_csv(v2)
+    fig,ax=plt.subplots(figsize=(8,5))
+    for family,group in df.groupby("family"):
+        x=group["nodes"] if "nodes" in group else group.index+1
+        ax.plot(x,group["compile_us_median"],marker="o",label=family)
+    ax.set_xscale("log"); ax.set_yscale("log"); ax.set_xlabel("IR nodes"); ax.set_ylabel("Median compile time, microseconds"); ax.set_title("Compilation scales with represented dependency contexts"); ax.legend()
+    fig.tight_layout(); fig.savefig(FIGURES/"fig03_compilation_scalability.pdf"); fig.savefig(FIGURES/"fig03_compilation_scalability.svg"); plt.close(fig)
+
+
+def plot_rank_unrank() -> None:
+    df=pd.read_csv(ROOT.parent/"arxiv_v2/results/raw/rank_unrank_scalability.csv")
+    fig,ax=plt.subplots(figsize=(8,5)); ax.plot(df.depth,df.rank_ns_per_object,marker="o",label="Python rank"); ax.plot(df.depth,df.unrank_ns_per_object,marker="s",label="Python unrank")
+    ax.set_xscale("log",base=2); ax.set_yscale("log"); ax.set_xlabel("Active depth"); ax.set_ylabel("Nanoseconds per object"); ax.set_title("Rank and unrank latency against active depth"); ax.legend()
+    fig.tight_layout(); fig.savefig(FIGURES/"fig04_rank_unrank.pdf"); fig.savefig(FIGURES/"fig04_rank_unrank.svg"); plt.close(fig)
+
+
+def plot_density() -> None:
+    df=pd.read_csv(RAW/"density_payload_sizes.csv"); chosen=["PDRS fixed","Mixed radix","UPER","APER","Schema-specific","MessagePack","JSON"]
+    pivot=df[df.method.isin(chosen)].pivot(index="schema",columns="method",values="mean_payload_bits").reindex(columns=chosen)
+    ax=pivot.plot(kind="bar",figsize=(11,5.5),color=PALETTE[:len(chosen)])
+    ax.set_yscale("log"); ax.set_ylabel("Mean payload bits, log scale"); ax.set_xlabel(""); ax.set_title("Representation size depends on what the message must carry"); ax.legend(ncol=2,fontsize=8)
+    plt.xticks(rotation=20,ha="right"); plt.tight_layout(); plt.savefig(FIGURES/"fig05_representation_sizes.pdf"); plt.savefig(FIGURES/"fig05_representation_sizes.svg"); plt.close()
+
+
+def plot_sampling(defect: pd.DataFrame) -> None:
+    budget=1000; df=defect[defect.budget==budget]
+    metrics=[]
+    for method,group in df.groupby("method"):
+        metrics.append({"method":method,"object_uniform":group[group.distribution=="object_uniform"].defects_found.mean(),"branch_uniform":group[group.distribution=="branch_uniform"].defects_found.mean(),"boundary":group[group.distribution=="boundary"].defects_found.mean(),"pairwise":group[group.distribution=="pairwise_interaction"].defects_found.mean()})
+    frame=pd.DataFrame(metrics).set_index("method")
+    ax=frame.plot(kind="bar",figsize=(11,5.5),color=PALETTE[:4]); ax.set_ylabel("Mean distinct defects"); ax.set_xlabel(""); ax.set_title("Sampling policies optimize different objectives"); ax.legend(title="Defect objective")
+    plt.xticks(rotation=20,ha="right"); plt.tight_layout(); plt.savefig(FIGURES/"fig06_sampling_objectives.pdf"); plt.savefig(FIGURES/"fig06_sampling_objectives.svg"); plt.close()
+
+
+def plot_defect_curves(defect: pd.DataFrame) -> None:
+    distributions=sorted(defect.distribution.unique()); methods=sorted(defect.method.unique()); fig,axes=plt.subplots(4,2,figsize=(11,14),sharex=True)
+    for ax,dist in zip(axes.flat,distributions):
+        subset=defect[defect.distribution==dist]
+        for index,method in enumerate(methods):
+            group=subset[subset.method==method].groupby("budget").defects_found.agg(["mean","std","count"])
+            ci=1.96*group["std"]/np.sqrt(group["count"])
+            ax.plot(group.index,group["mean"],marker="o",label=method,color=PALETTE[index%len(PALETTE)])
+            ax.fill_between(group.index,group["mean"]-ci,group["mean"]+ci,color=PALETTE[index%len(PALETTE)],alpha=.12)
+        ax.set_title(dist.replace("_"," ")); ax.set_ylabel("Distinct defects")
+    axes[-1,0].set_xlabel("Attempts"); axes[-1,1].set_xlabel("Attempts")
+    handles,labels=axes[0,0].get_legend_handles_labels(); fig.legend(handles,labels,loc="lower center",ncol=3,fontsize=8); fig.suptitle("Defect discovery curves depend on the seeded defect process",y=.995); fig.tight_layout(rect=(0,.05,1,.98)); fig.savefig(FIGURES/"fig07_defect_curves.pdf"); fig.savefig(FIGURES/"fig07_defect_curves.svg"); plt.close(fig)
+
+
+def plot_distributed(distributed: pd.DataFrame) -> None:
+    fig,axes=plt.subplots(1,2,figsize=(11,4.8)); axes[0].bar(distributed.method,distributed.overlap,color=PALETTE[0]); axes[0].set_ylabel("Duplicate assignments"); axes[0].set_title("All coordinated policies eliminate overlap"); axes[0].tick_params(axis="x",rotation=25)
+    axes[1].bar(distributed.method,distributed.max_worker_cost,color=PALETTE[1]); axes[1].set_ylabel("Maximum worker cost units"); axes[1].set_title("Completion time depends on allocation order"); axes[1].tick_params(axis="x",rotation=25)
+    fig.tight_layout(); fig.savefig(FIGURES/"fig08_duplication_completion.pdf"); fig.savefig(FIGURES/"fig08_duplication_completion.svg"); plt.close(fig)
+
+
+def plot_load(distributed: pd.DataFrame) -> None:
+    fig,ax=plt.subplots(figsize=(8,5)); order=["contiguous","strided","hash","permuted","central_shuffle"]; data=distributed.set_index("method").loc[order]
+    ax.bar(order,data.cost_cv,color=PALETTE[:5]); ax.set_ylabel("Execution-cost coefficient of variation"); ax.set_title("Deterministic rank permutation nearly equalizes heterogeneous work"); ax.tick_params(axis="x",rotation=20)
+    for i,v in enumerate(data.cost_cv): ax.text(i,v+max(data.cost_cv)*.02,f"{v:.3f}",ha="center",fontsize=8)
+    fig.tight_layout(); fig.savefig(FIGURES/"fig09_load_balance.pdf"); fig.savefig(FIGURES/"fig09_load_balance.svg"); plt.close(fig)
+
+
+def plot_evolution(rows: list[dict[str, Any]]) -> None:
+    df=pd.DataFrame(rows).sort_values("churn_fraction")
+    fig,ax=plt.subplots(figsize=(9,5)); ax.barh(df.mutation,100*df.churn_fraction,color=PALETTE[2]); ax.set_xlabel("Common objects whose rank changed, percent"); ax.set_title("Rank stability depends on edit position and ordering")
+    fig.tight_layout(); fig.savefig(FIGURES/"fig10_schema_evolution.pdf"); fig.savefig(FIGURES/"fig10_schema_evolution.svg"); plt.close(fig)
+
+
+def plot_integrity() -> None:
+    df=pd.read_csv(RAW/"integrity_faults.csv"); grouped=df.groupby(["integrity","corruption"]).detection_fraction.mean().unstack().loc[["none","crc32","mac16"]]
