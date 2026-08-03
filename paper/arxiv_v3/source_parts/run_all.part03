@@ -1,0 +1,129 @@
+de":compile_run.returncode,"detail":compile_run.stderr[-300:]})
+            continue
+        run = subprocess.run([str(binary)], capture_output=True, text=True)
+        killed = run.returncode != 0 if mutant else run.returncode == 0
+        rows.append({"runtime":"c","mutant":mutant,"compiled":True,"killed":killed,"returncode":run.returncode,"detail":run.stdout.strip()})
+        binary.unlink(missing_ok=True)
+    write_csv(RAW / "mutation_c.csv", rows)
+    mutants = [row for row in rows if row["mutant"] != 0]
+    score = sum(row["killed"] for row in mutants) / len(mutants)
+    return {"mutants":len(mutants),"score":score,"baseline_passed":rows[0]["killed"]}
+
+
+def rust_source() -> None:
+    directory = ROOT / "mutants" / "rust"
+    (directory / "Cargo.toml").write_text('''[package]\nname="pdrs-mutants"\nversion="0.1.0"\nedition="2021"\n\n[dependencies]\n''', encoding="utf-8")
+    (directory / "src").mkdir(exist_ok=True)
+    (directory / "src" / "main.rs").write_text(r'''use std::env;
+fn count_branch(sizes:&[u64], m:u32)->Option<u64>{
+ if m==1{return sizes.iter().product::<u64>().into()}
+ if m==2{return Some(sizes[..sizes.len()-1].iter().sum())}
+ let mut out=0u64; for x in sizes {out=out.checked_add(*x)?;} Some(out)
+}
+fn rank_range(value:u64,start:u64,stop:u64,block:u64,m:u32)->Option<u64>{
+ let s=if m==4{start+1}else{start};
+ if (m==3 && value>=stop)||value<s||value>stop{return None}
+ if m==5{return Some(0)}
+ if m==6{return (value-s).checked_mul(block)?.checked_mul(block)}
+ (value-s).checked_mul(block)
+}
+fn choose(q:u64,ends:&[u64],m:u32)->Option<usize>{
+ for (i,end) in ends.iter().enumerate(){if (m==7&&q<=*end)||(m!=7&&q<*end){return Some(i)}} None
+}
+fn main(){
+ let m:u32=env::args().nth(1).unwrap_or("0".into()).parse().unwrap();
+ assert_eq!(count_branch(&[3200,600,200],m),Some(4000));
+ assert_eq!(rank_range(40,1,40,80,m),Some(3120));
+ assert_eq!(rank_range(1,1,40,80,m),Some(0));
+ assert_eq!(choose(3200,&[3200,3800,4000],m),Some(1));
+ assert_eq!(choose(3800,&[3200,3800,4000],m),Some(2));
+ println!("ok");
+}
+''', encoding="utf-8")
+
+
+def replay_experiment(schemas: dict[str, CompiledSchema]) -> dict[str, Any]:
+    schema = schemas["permit"]
+    path = RAW / "replay_ledger.sqlite"
+    path.unlink(missing_ok=True)
+    ledger = ReplayLedger(path)
+    rank = 3210
+    record = schema.lower(schema.unrank(rank))
+    object_identity = ObjectIdentity("2", schema.canonical_hash, rank, "0.2.0", "b5315f0")
+    object_hash = ledger.record_object(object_identity, record)
+    manifest = environment_manifest({"evaluation_date":"2026-08-04","calendar":"TARGET","tolerance":"1e-10"})
+    env_hash = digest_manifest(manifest)
+    oracle_hash = digest_manifest({"oracle":"roundtrip","version":"2"})
+    params_hash = digest_manifest({"worker":0,"workers":8})
+    execution = ExecutionIdentity(object_hash, "0.1.0", "3760f14", "reference", "2", env_hash, oracle_hash, "snapshot-2026-08-04", params_hash)
+    execution_hash = ledger.record_execution(execution, result={"valid":True})
+    replayed = ledger.replay_object(schema, object_hash)
+    statuses = {
+        "reproduced": ledger.verify_execution(execution_hash, environment_hash=env_hash, oracle_config_hash=oracle_hash, adapter_version="2", external_data_snapshot="snapshot-2026-08-04"),
+        "environment": ledger.verify_execution(execution_hash, environment_hash="changed", oracle_config_hash=oracle_hash, adapter_version="2", external_data_snapshot="snapshot-2026-08-04"),
+        "oracle": ledger.verify_execution(execution_hash, environment_hash=env_hash, oracle_config_hash="changed", adapter_version="2", external_data_snapshot="snapshot-2026-08-04"),
+        "adapter": ledger.verify_execution(execution_hash, environment_hash=env_hash, oracle_config_hash=oracle_hash, adapter_version="3", external_data_snapshot="snapshot-2026-08-04"),
+        "snapshot": ledger.verify_execution(execution_hash, environment_hash=env_hash, oracle_config_hash=oracle_hash, adapter_version="2", external_data_snapshot=None),
+    }
+    ledger.close()
+    assert replayed == record
+    assert statuses == {"reproduced":"reproduced","environment":"environment-mismatch","oracle":"oracle-mismatch","adapter":"adapter-mismatch","snapshot":"external-data-unavailable"}
+    summary = {"object_identity":asdict(object_identity),"object_hash":object_hash,"execution_hash":execution_hash,"statuses":statuses,"environment_manifest":manifest}
+    write_json(PROCESSED / "replay_summary.json", summary)
+    return summary
+
+
+def evolution_experiment(schemas: dict[str, CompiledSchema]) -> list[dict[str, Any]]:
+    base_doc = benchmark_schemas()["permit"]
+    base = schemas["permit"]
+    variants: list[tuple[str, dict[str, Any]]] = []
+    append = copy.deepcopy(base_doc); append["nodes"]["type"]["branches"].append({"value":"future","target":"future"}); append["nodes"]["future"]={"type":"range","field":"future_value","start":0,"stop":49,"target":"end"}; variants.append(("append_root_branch",append))
+    insert = copy.deepcopy(append); insert["nodes"]["type"]["branches"].insert(0,insert["nodes"]["type"]["branches"].pop()); variants.append(("insert_root_branch_first",insert))
+    reverse = copy.deepcopy(base_doc); reverse["nodes"]["type"]["branches"].reverse(); variants.append(("reverse_root_order",reverse))
+    expand_first = copy.deepcopy(base_doc); expand_first["nodes"]["std_serial"]["stop"] += 15; variants.append(("expand_first_branch_range",expand_first))
+    expand_last = copy.deepcopy(base_doc); expand_last["nodes"]["exp_serial"]["stop"] += 80; variants.append(("expand_last_branch_range",expand_last))
+    remove = copy.deepcopy(base_doc); remove["nodes"]["type"]["branches"] = remove["nodes"]["type"]["branches"][:-1]; del remove["nodes"]["exp_lab"]; del remove["nodes"]["exp_serial"]; variants.append(("remove_last_branch",remove))
+    values = list(base.enumerate())
+    rows=[]
+    for mutation, doc in variants:
+        changed=CompiledSchema(doc); common=0; moved=0; displacements=[]
+        for value in values:
+            try: new=changed.rank(value)
+            except SchemaError: continue
+            old=base.rank(value); common+=1; displacements.append(new-old); moved += new!=old
+        rows.append({"mutation":mutation,"base_domain":base.count,"new_domain":changed.count,"common_objects":common,"moved_objects":moved,"churn_fraction":moved/common if common else math.nan,"mean_abs_displacement":statistics.mean(abs(v) for v in displacements) if displacements else math.nan})
+    write_csv(RAW / "schema_evolution_v3.csv", rows)
+    return rows
+
+
+def load_v2_data() -> tuple[pd.DataFrame, pd.DataFrame, dict[str, Any]]:
+    v2 = ROOT.parent / "arxiv_v2"
+    defect_path = v2 / "results/raw/defect_distributions.csv"
+    distributed_path = v2 / "results/raw/distributed_allocations.csv"
+    if not defect_path.exists() or not distributed_path.exists():
+        subprocess.run([sys.executable, str(v2 / "experiments/run_phase1_9.py")], check=True)
+    defect = pd.read_csv(defect_path)
+    distributed = pd.read_csv(distributed_path)
+    verified = json.loads((v2 / "results/processed/verified_ci_results.json").read_text())
+    sf = verified["real_programs"]["simplefix"]
+    q = verified["real_programs"]["quantlib"]
+    iso = verified["real_programs"]["iso20022"]
+    real = {
+        "simplefix": {"outcome_counts": {
+            "message": sf["message_outcomes"], "none": sf["none_outcomes"],
+            "exception": sf["exception_outcomes"]}},
+        "quantlib": {"rows": [{}] * q["completed_rows"], "failures": [{}] * q["exceptions"]},
+        "iso20022": {"mutation_outcomes": [{}] * iso["mutation_probes"],
+            "rejected_by_both": iso["rejected_by_both"]},
+    }
+    return defect, distributed, real
+
+
+def plot_architecture() -> None:
+    fig, ax = plt.subplots(figsize=(9, 6)); ax.axis("off")
+    labels=["External schema","Canonical IR","Count and prefix compiler","Python    C    Rust","Rank | Unrank | Sample | Partition | Replay","FinSpace and testing applications"]
+    ys=np.linspace(0.9,0.1,len(labels))
+    for i,(label,y) in enumerate(zip(labels,ys)):
+        ax.text(0.5,y,label,ha="center",va="center",fontsize=12,bbox=dict(boxstyle="round,pad=.35",fc="white",ec=PALETTE[i%len(PALETTE)],lw=1.8))
+        if i<len(labels)-1: ax.annotate("",xy=(0.5,ys[i+1]+0.035),xytext=(0.5,y-0.035),arrowprops=dict(arrowstyle="->",lw=1.5))
+    fig.tight_layout(); fig.savefig(FIGURES/"fig01_architecture.pdf"); fig.savefig(FIGURES/"fig01_architecture.svg"); plt.close(fig)
