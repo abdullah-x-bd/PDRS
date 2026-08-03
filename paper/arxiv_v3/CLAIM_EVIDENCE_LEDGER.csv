@@ -1,0 +1,13 @@
+claim_id,claim,evidence,generator,boundary
+V3-C01,Dense ranks use ceil(log2 N) fixed schema-relative bits,results/raw/density_payload_sizes.csv,experiments/run_all.py,Does not describe complete-message or nonuniform expected length
+V3-C02,The frozen median valid single-bit rank corruption is 92.8 percent,results/processed/experiment_summary.json from frozen layer,scripts/run_full_experiments.py,Schema corpus statistic rather than universal constant
+V3-C03,CRC and HMAC detect all tested single/two-bit burst and truncation faults,results/raw/integrity_faults.csv,experiments/run_all.py,Random byte replacement can reproduce the original byte
+V3-C04,Python curated mutation score is 100 percent,results/raw/mutation_python.csv,experiments/run_all.py,Curated mutants and explicit applicability
+V3-C05,C curated mutation score is 100 percent,results/raw/mutation_c.csv,experiments/run_all.py,Validated-IR runtime subset
+V3-C06,Rust curated mutation score is 100 percent,results/raw/mutation_rust.csv,experiments/run_rust_mutants.py,Validated-IR runtime subset and CI execution
+V3-C07,All 13 curated and 1000 generated malformed IR documents are rejected,results/raw/malformed_ir.csv,experiments/run_all.py,Corpus evidence rather than proof over all byte strings
+V3-C08,All 10 canonicalization cases pass,results/raw/canonicalization_matrix.csv,experiments/run_all.py,Implemented canonicalization version 2
+V3-C09,Actual ASN.1 UPER and PER samples round-trip,results/raw/asn1_per_actual.csv,experiments/external_baselines.py,Only schemas with direct ASN.1 translations
+V3-C10,External BDD model counts equal the five domain sizes,results/raw/bdd_actual.csv,experiments/external_baselines.py,BDD represents the valid rank interval rather than source predicates
+V3-C11,Execution replay reports explicit mismatch states,results/processed/replay_summary.json,experiments/run_all.py,Matching evidence attempts reproduction but cannot restore missing external data
+V3-C12,The technical completion scorecard passes,results/processed/completion_scorecard_final.json,experiments/finalize_phase_10_18.py,Permanent DOI remains an external gate
