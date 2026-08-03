@@ -1,0 +1,83 @@
+          output.extend([[value, *tail] for tail in walk(node["target"])])
+        return output
+    return walk(document["root"])
+
+
+def benchmark_schemas() -> dict[str, dict[str, Any]]:
+    return {
+        "permit": {
+            "name": "permit", "version": "2", "root": "type", "nodes": {
+                "type": {"type": "choice", "field": "permit_type", "branches": [
+                    {"value": "standard", "target": "std_zone"},
+                    {"value": "temporary", "target": "tmp_days"},
+                    {"value": "experimental", "target": "exp_lab"},
+                ]},
+                "std_zone": {"type": "range", "field": "zone", "start": 1, "stop": 40, "target": "std_serial"},
+                "std_serial": {"type": "range", "field": "serial", "start": 0, "stop": 79, "target": "end"},
+                "tmp_days": {"type": "range", "field": "days", "start": 1, "stop": 30, "target": "tmp_serial"},
+                "tmp_serial": {"type": "range", "field": "serial", "start": 0, "stop": 19, "target": "end"},
+                "exp_lab": {"type": "range", "field": "lab", "start": 1, "stop": 10, "target": "exp_serial"},
+                "exp_serial": {"type": "range", "field": "serial", "start": 0, "stop": 19, "target": "end"},
+                "end": {"type": "terminal"},
+            },
+        },
+        "fix_order": {
+            "name": "fix_order", "version": "2", "root": "type", "nodes": {
+                "type": {"type": "choice", "field": "message_type", "branches": [
+                    {"value": "D", "target": "side_d"}, {"value": "F", "target": "side_f"},
+                    {"value": "G", "target": "side_g"}, {"value": "V", "target": "symbol_v"},
+                ]},
+                "side_d": {"type": "choice", "field": "side", "branches": [{"value": "1", "target": "qty_d"}, {"value": "2", "target": "qty_d"}]},
+                "side_f": {"type": "choice", "field": "side", "branches": [{"value": "1", "target": "qty_f"}, {"value": "2", "target": "qty_f"}]},
+                "side_g": {"type": "choice", "field": "side", "branches": [{"value": "1", "target": "qty_g"}, {"value": "2", "target": "qty_g"}]},
+                "qty_d": {"type": "range", "field": "quantity_bucket", "start": 1, "stop": 64, "target": "price_d"},
+                "qty_f": {"type": "range", "field": "quantity_bucket", "start": 1, "stop": 32, "target": "end"},
+                "qty_g": {"type": "range", "field": "quantity_bucket", "start": 1, "stop": 32, "target": "price_g"},
+                "price_d": {"type": "range", "field": "price_tick", "start": 1, "stop": 128, "target": "end"},
+                "price_g": {"type": "range", "field": "price_tick", "start": 1, "stop": 128, "target": "end"},
+                "symbol_v": {"type": "range", "field": "symbol_id", "start": 0, "stop": 31, "target": "depth_v"},
+                "depth_v": {"type": "range", "field": "market_depth", "start": 1, "stop": 10, "target": "end"},
+                "end": {"type": "terminal"},
+            },
+        },
+        "iso_payment": {
+            "name": "iso_payment", "version": "2", "root": "message", "nodes": {
+                "message": {"type": "choice", "field": "message", "branches": [
+                    {"value": "pain.001", "target": "pain_currency"},
+                    {"value": "pacs.008", "target": "pacs_currency"},
+                ]},
+                "pain_currency": {"type": "choice", "field": "currency", "branches": [
+                    {"value": "EUR", "target": "pain_amount"}, {"value": "USD", "target": "pain_amount"}, {"value": "GBP", "target": "pain_amount"}]},
+                "pacs_currency": {"type": "choice", "field": "currency", "branches": [
+                    {"value": "EUR", "target": "pacs_amount"}, {"value": "USD", "target": "pacs_amount"}, {"value": "INR", "target": "pacs_amount"}]},
+                "pain_amount": {"type": "range", "field": "amount_minor", "start": 1, "stop": 500, "target": "pain_day"},
+                "pacs_amount": {"type": "range", "field": "amount_minor", "start": 1, "stop": 800, "target": "pacs_day"},
+                "pain_day": {"type": "range", "field": "settlement_day", "start": 1, "stop": 31, "target": "end"},
+                "pacs_day": {"type": "range", "field": "settlement_day", "start": 1, "stop": 31, "target": "priority"},
+                "priority": {"type": "choice", "field": "priority", "branches": [{"value": "NORM", "target": "end"}, {"value": "HIGH", "target": "end"}]},
+                "end": {"type": "terminal"},
+            },
+        },
+        "quant_option": {
+            "name": "quant_option", "version": "2", "root": "option", "nodes": {
+                "option": {"type": "choice", "field": "option_type", "branches": [{"value": "call", "target": "spot_call"}, {"value": "put", "target": "spot_put"}]},
+                "spot_call": {"type": "range", "field": "spot_bucket", "start": 50, "stop": 150, "target": "strike_call"},
+                "spot_put": {"type": "range", "field": "spot_bucket", "start": 50, "stop": 150, "target": "strike_put"},
+                "strike_call": {"type": "range", "field": "strike_bucket", "start": 50, "stop": 150, "target": "vol_call"},
+                "strike_put": {"type": "range", "field": "strike_bucket", "start": 50, "stop": 150, "target": "vol_put"},
+                "vol_call": {"type": "range", "field": "vol_bucket", "start": 1, "stop": 20, "target": "mat_call"},
+                "vol_put": {"type": "range", "field": "vol_bucket", "start": 1, "stop": 20, "target": "mat_put"},
+                "mat_call": {"type": "range", "field": "maturity_bucket", "start": 1, "stop": 12, "target": "end"},
+                "mat_put": {"type": "range", "field": "maturity_bucket", "start": 1, "stop": 12, "target": "end"},
+                "end": {"type": "terminal"},
+            },
+        },
+        "imbalanced": {
+            "name": "imbalanced", "version": "2", "root": "kind", "nodes": {
+                "kind": {"type": "choice", "field": "kind", "branches": [{"value": "common", "target": "common"}, {"value": "rare", "target": "rare"}]},
+                "common": {"type": "range", "field": "value", "start": 0, "stop": 4095, "target": "end"},
+                "rare": {"type": "range", "field": "value", "start": 0, "stop": 7, "target": "end"},
+                "end": {"type": "terminal"},
+            },
+        },
+    }
