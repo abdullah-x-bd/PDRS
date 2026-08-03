@@ -1,0 +1,20 @@
+TITLE
+PDRS: A Cross-Language Compiler for Rank-Addressable Finite Structured Domains
+
+AUTHORS
+Abdullah X
+
+PRIMARY CATEGORY
+cs.SE
+
+SUGGESTED CROSS-LISTS
+cs.PL; q-fin.CP
+
+ABSTRACT
+Finite structured test domains often admit exact counting and indexed enumeration, yet practical systems rarely expose those properties through a language-neutral interface suitable for reproducible distributed campaigns. We present Path-Dependent Radix Spaces (PDRS), a compiler and runtime framework that translates finite acyclic dependent schemas into a canonical intermediate representation with exact cardinality, rank, and unrank operations. The mathematical construction belongs to the established family of enumerative coding and indexed dependent enumeration. PDRS contributes an external schema, independent Python, C, and Rust runtimes, schema-relative object identities, resource controls, deterministic work allocation, and a finance-oriented deployment layer called FinSpace. A redesigned evaluation uses an independent recursive oracle, a reduced multivalued decision diagram baseline, eight defect distributions, five sampling policies, five distributed allocation policies with heterogeneous costs, and paired campaign-level bootstrap intervals. The results support exact indexing and duplicate-free allocation while showing that object-uniform sampling is not universally optimal for defect discovery and contiguous rank intervals can produce severe execution-cost imbalance. Existing and extended SimpleFIX, QuantLib, and ISO 20022 studies demonstrate integration and reproducible case identification without claiming a previously unknown defect.
+
+COMMENTS
+Revised research manuscript and reproducible artifact. The paper removes the Pareto-frontier claim, adds SciFe and knowledge-compilation prior work, formalizes typed injective lowering, redesigns defect and distributed experiments, and separates object replay from execution replay.
+
+DOI
+Leave blank until Zenodo mints an actual DOI for an immutable release.
