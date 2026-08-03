@@ -1,0 +1,65 @@
+\section{Research Questions and Methodology}\label{sec:method}
+\subsection{Research questions}
+The evaluation answers seven questions.
+\begin{description}[style=nextline,leftmargin=1.3cm,labelwidth=1.0cm]
+  \item[RQ1] Does PDRS preserve exact semantics across implementations and malformed inputs?
+  \item[RQ2] How do compilation and rank/unrank scale with domain structure?
+  \item[RQ3] How does PDRS compare with dependent enumeration, decision diagrams, and representation baselines?
+  \item[RQ4] How do generation methods behave under different sampling and defect objectives?
+  \item[RQ5] How do distributed rank allocations trade duplication against workload balance and coordination?
+  \item[RQ6] What utility and limitations appear in real financial software?
+  \item[RQ7] What do dense identities imply for message size, integrity, schema evolution, and replay?
+\end{description}
+
+\subsection{Artifact layers}
+The evidence uses three immutable layers. The first layer freezes the original Python, C, Rust, Feat, property-based, fuzzing, and finance experiments. The second layer adds the Phase 1--9 semantic oracle, reduced MDD, defect-distribution study, coordinated allocation study, and paired bootstrap. The third layer adds density, integrity, mutation, canonicalization, schema-evolution, replay, and full figure generation.
+
+The repository identifies each layer by commit SHA, lockfile, workflow run, and checksum manifest. Generated evidence never overwrites an earlier layer. This design preserves the historical basis of claims and permits later corrections without silent replacement.
+
+\subsection{Benchmark domains}
+The Phase 10--18 corpus contains five schemas:
+\begin{itemize}
+  \item a \PermitDomain-object permit domain with three unequal branches;
+  \item a \FixDomain-object FIX order/message domain;
+  \item a \IsoDomain-object ISO payment profile domain;
+  \item a \QuantDomain-object option scenario domain; and
+  \item a \ImbalancedDomain-object two-branch stress domain.
+\end{itemize}
+The domains cover unequal choices, dependent fields, shared continuations, integer ranges, and cardinalities from thousands to millions. Smaller domains are enumerated exhaustively. Larger domains use deterministic edge-inclusive samples for representation measurements.
+
+\subsection{RQ1 protocol: semantics and mutation}
+An independent recursive function enumerates the source schema without using PDRS counts, prefix sums, rank, or unrank. Exact object digests compare PDRS with the independent oracle and reduced MDD count. The malformed corpus includes 13 curated cases and \MalformedFuzz\ randomly mutated documents. The canonicalization matrix contains \CanonicalCases\ cases covering Boolean/integer distinction, signed zero, NaN, Unicode, decimal normalization, dates, duplicate keys, map order, branch order, and infinity.
+
+The mutation study uses semantic operators instead of arbitrary token changes. Python receives \PythonMutants\ curated mutants. C and Rust receive the arithmetic and boundary subset applicable to native IR runtimes. Each mutant has a named counterexample. Build-invalid mutants are not counted as killed. The last six Python mutants form a held-out set whose witnesses are evaluated after the ordinary test suite is frozen.
+
+\subsection{RQ2 protocol: scalability}
+Compilation experiments vary active depth, explicit nodes, root width, and DAG sharing. Rank and unrank use deterministic rank samples with warm-up and repeated measurements. The paper emphasizes structural trends because absolute microseconds depend on the runner.
+
+\subsection{RQ3 protocol: representations}
+The comparison separates three quantities.
+\paragraph{Fixed-width schema-relative identity.}
+Every complete object receives \(\lceil\log_2N\rceil\) bits. PDRS, enumerative coding, and a dense decision-diagram index share this lower bound.
+\paragraph{Expected variable-length payload.}
+For distribution \(p\),
+\begin{equation}
+E[L]=\sum_{x\in\D}p(x)L(x).
+\end{equation}
+The study evaluates uniform, branch-skewed, Zipf-like, and finance-shaped models at block sizes 1, 16, 256, and 4,096. Arithmetic coding includes termination overhead. rANS includes final-state and frequency-table overhead.
+\paragraph{Self-contained message.}
+The message includes framing, a canonicalization version, a 128-bit schema identifier, rank length, rank bytes, and either no integrity field, CRC-32, or a 128-bit MAC.
+
+Payload baselines include mixed radix, enumerative coding, an ASN.1 PER implementation where the schema translates directly, a reduced MDD/BDD index, schema-specific bit packing, MessagePack, and canonical JSON. Unsupported transformations remain marked unsupported and never count as losses.
+
+\subsection{RQ4 protocol: defect objectives}
+Five methods receive budgets 100, 500, and 1,000 across 30 paired campaigns: object-uniform sampling without replacement, object-uniform replacement sampling, branch-balanced sampling, boundary-biased sampling, and a simple coverage-guided selector. Eight defect distributions cover object-uniform, branch-uniform, rare-branch, boundary, pairwise-interaction, clustered-local, execution-derived, and historical-like edge patterns.
+
+A complete seeded campaign is the independent unit. Budget prefixes remain nested. Each comparison pairs methods by repetition and bootstraps complete paired differences 2,000 times. The analysis reports median differences and 95 percent intervals. An interval crossing zero is labeled uncertain rather than equal.
+
+\subsection{RQ5 protocol: distributed allocation}
+Eight workers receive all ranks through contiguous, strided, hashed, affine-permuted, or centrally shuffled allocation. The execution-cost model assigns higher costs to later branches, boundaries, and selected numerical cases. Metrics include overlap, object-count coefficient of variation, execution-cost coefficient of variation, maximum worker cost, branch-distribution error, coordination state, replayability, and remaining ranks after a simulated worker failure.
+
+\subsection{RQ6 protocol: financial software}
+The frozen and extended workflows exercise SimpleFIX 1.0.17, QuantLib 1.43, lxml, xmlschema, and commit-pinned ISO 20022 schemas. QuantLib cases include low volatility, short maturity, negative rates, extreme moneyness, and long maturity. SimpleFIX receives valid profiles and malformed-message transformations. ISO documents receive facet, order, date, unexpected-element, and enumeration mutations. An observation becomes a software defect only after independent upstream confirmation.
+
+\subsection{RQ7 protocol: integrity, evolution, and replay}
+Raw-rank fault injection flips every bit for deterministic rank samples. Framed messages receive single-bit, two-bit, burst, byte-replacement, and truncation corruption. Schema evolution includes append, early insert, branch reversal, early range expansion, late range expansion, and branch removal. Replay tests verify one correct execution plus environment, oracle, adapter, and data-snapshot mismatches.
