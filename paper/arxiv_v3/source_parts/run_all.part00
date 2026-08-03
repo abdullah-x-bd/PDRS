@@ -1,0 +1,207 @@
+from __future__ import annotations
+
+import argparse
+from collections import Counter, defaultdict
+import copy
+import csv
+from dataclasses import asdict
+from decimal import Decimal
+import hashlib
+import json
+import math
+import os
+from pathlib import Path
+import random
+import statistics
+import subprocess
+import sys
+import tempfile
+import time
+from typing import Any, Callable, Iterable, Mapping
+
+ROOT = Path(__file__).resolve().parents[1]
+SRC = ROOT / "src"
+sys.path.insert(0, str(SRC))
+
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+from pdrs_codecs import (
+    ans_expected_bits,
+    aper_bits,
+    arithmetic_expected_bits,
+    distribution_probabilities,
+    expected_code_length,
+    fixed_rank,
+    mixed_radix_bits,
+    reduced_mdd_summary,
+    schema_specific_bits,
+    self_contained_message,
+    tagged_json,
+    tagged_msgpack,
+    uper_bits,
+    varint,
+    verify_message,
+)
+from model import (
+    CompiledSchema,
+    Limits,
+    SchemaError,
+    benchmark_schemas,
+    canonical_date,
+    canonical_decimal,
+    canonical_json,
+    canonicalize,
+    naive_enumerate,
+    nfc,
+    reject_duplicate_json,
+)
+from replay import (
+    ExecutionIdentity,
+    ObjectIdentity,
+    ReplayLedger,
+    digest_manifest,
+    environment_manifest,
+)
+
+SEED = 20260804
+RAW = ROOT / "results" / "raw"
+PROCESSED = ROOT / "results" / "processed"
+FIGURES = ROOT / "figures"
+for path in (RAW, PROCESSED, FIGURES, ROOT / "reproducibility"):
+    path.mkdir(parents=True, exist_ok=True)
+
+PALETTE = ["#0072B2", "#E69F00", "#009E73", "#D55E00", "#CC79A7", "#56B4E9", "#F0E442", "#000000"]
+METHOD_ORDER = [
+    "PDRS fixed", "Enumerative", "Mixed radix", "UPER", "APER",
+    "Arithmetic", "rANS", "Reduced MDD index", "Schema-specific", "MessagePack", "JSON",
+]
+
+
+def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
+    fields: list[str] = []
+    for row in rows:
+        for key in row:
+            if key not in fields:
+                fields.append(key)
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fields)
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def write_json(path: Path, value: Any) -> None:
+    path.write_text(json.dumps(value, indent=2, sort_keys=True, default=str) + "\n", encoding="utf-8")
+
+
+def sample_ranks(schema: CompiledSchema, count: int, seed: int) -> list[int]:
+    if schema.count <= count:
+        return list(range(schema.count))
+    rng = random.Random(seed)
+    # Include exact edges and branch transitions, then fill uniformly.
+    anchors = {0, schema.count - 1, schema.count // 2}
+    for _, start, stop in schema.root_intervals():
+        anchors.update({start, max(start, stop - 1), (start + stop) // 2})
+    remaining = count - len(anchors)
+    anchors.update(rng.sample(range(schema.count), remaining))
+    return sorted(anchors)
+
+
+def entropy_from_probs(probs: np.ndarray) -> float:
+    positive = probs[probs > 0]
+    return float(-(positive * np.log2(positive)).sum())
+
+
+def entropy_for(schema: CompiledSchema, mode: str) -> float:
+    n = schema.count
+    if mode == "uniform":
+        return math.log2(n)
+    # Exact arrays are practical up to five million ranks in this artifact.
+    ranks = np.arange(1, n + 1, dtype=np.float64)
+    if mode == "zipf":
+        weights = 1.0 / ranks
+    elif mode == "finance_style":
+        center = (n + 1) / 2
+        weights = np.exp(-np.abs(ranks - center) / max(1.0, n / 8)) + 0.05
+    elif mode == "branch_skew":
+        weights = np.zeros(n, dtype=np.float64)
+        for index, (_, start, stop) in enumerate(schema.root_intervals()):
+            weights[start:stop] = 0.7 ** index
+    else:
+        raise KeyError(mode)
+    probs = weights / weights.sum()
+    return entropy_from_probs(probs)
+
+
+def density_experiment(schemas: dict[str, CompiledSchema]) -> dict[str, Any]:
+    size_rows: list[dict[str, Any]] = []
+    expected_rows: list[dict[str, Any]] = []
+    self_rows: list[dict[str, Any]] = []
+    model_modes = ["uniform", "branch_skew", "zipf", "finance_style"]
+    blocks = [1, 16, 256, 4096]
+
+    for schema_index, (name, schema) in enumerate(schemas.items()):
+        ranks = sample_ranks(schema, 5000, SEED + schema_index)
+        records = [schema.lower(schema.unrank(rank)) for rank in ranks]
+        tokens = [schema.unrank(rank) for rank in ranks]
+        mdd = reduced_mdd_summary(schema)
+        method_values: dict[str, list[float]] = {
+            "PDRS fixed": [float(schema.bit_length)] * len(ranks),
+            "Enumerative": [float(schema.bit_length)] * len(ranks),
+            "Mixed radix": [float(mixed_radix_bits(schema, value)) for value in tokens],
+            "UPER": [float(uper_bits(schema, value)) for value in tokens],
+            "APER": [float(aper_bits(schema, value)) for value in tokens],
+            "Reduced MDD index": [float(mdd.index_bits)] * len(ranks),
+            "Schema-specific": [float(schema_specific_bits(name, record)) for record in records],
+            "MessagePack": [float(len(tagged_msgpack(record)) * 8) for record in records],
+            "JSON": [float(len(tagged_json(record)) * 8) for record in records],
+        }
+        for method, values in method_values.items():
+            size_rows.append({
+                "schema": name, "domain": schema.count, "sample_n": len(values), "method": method,
+                "mean_payload_bits": statistics.mean(values), "median_payload_bits": statistics.median(values),
+                "p95_payload_bits": float(np.percentile(values, 95)),
+                "schema_representation_bytes": len(canonical_json(schema.document)) if method.startswith("PDRS") else "",
+                "compiled_nodes": mdd.nodes if method == "Reduced MDD index" else len(schema.nodes) if method.startswith("PDRS") else "",
+            })
+        for mode in model_modes:
+            entropy = entropy_for(schema, mode)
+            for block in blocks:
+                expected_rows.extend([
+                    {"schema": name, "distribution": mode, "block": block, "method": "Arithmetic",
+                     "total_bits": block * entropy + 2.0, "bits_per_object": entropy + 2.0 / block,
+                     "shared_model": True, "model_overhead_bits": 0},
+                    {"schema": name, "distribution": mode, "block": block, "method": "rANS",
+                     "total_bits": block * entropy + 32 + min(schema.count, 4096) * 12,
+                     "bits_per_object": entropy + (32 + min(schema.count, 4096) * 12) / block,
+                     "shared_model": False, "model_overhead_bits": min(schema.count, 4096) * 12},
+                    {"schema": name, "distribution": mode, "block": block, "method": "PDRS fixed",
+                     "total_bits": block * schema.bit_length, "bits_per_object": schema.bit_length,
+                     "shared_model": True, "model_overhead_bits": 0},
+                ])
+        for integrity in ["none", "crc32", "mac16"]:
+            sizes = [len(self_contained_message(schema, rank, integrity)) * 8 for rank in ranks]
+            self_rows.append({
+                "schema": name, "integrity": integrity, "sample_n": len(sizes),
+                "payload_rank_bits": schema.bit_length, "schema_id_bits": 128,
+                "mean_self_contained_bits": statistics.mean(sizes),
+                "median_self_contained_bits": statistics.median(sizes),
+                "framing_and_version_included": True,
+            })
+
+    write_csv(RAW / "density_payload_sizes.csv", size_rows)
+    write_csv(RAW / "density_expected_lengths.csv", expected_rows)
+    write_csv(RAW / "density_self_contained.csv", self_rows)
+    summary = {
+        "schemas": len(schemas),
+        "payload_methods": sorted(set(row["method"] for row in size_rows)),
+        "distributions": model_modes,
+        "blocks": blocks,
+        "fixed_identity_claim": "PDRS and enumerative coding use ceil(log2 N) schema-relative bits.",
+        "secondary_consequence": True,
+    }
+    write_json(PROCESSED / "density_summary.json", summary)
+    return summary
