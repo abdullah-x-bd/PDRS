@@ -1,0 +1,41 @@
+\section{Closest Prior Work}\label{sec:prior}
+\subsection{Enumerative coding and combinatorial ranking}
+Enumerative source coding maps members of a finite set to consecutive integers and represents them with an index \cite{cover1973}. Combinatorial algorithms use related ranking and unranking constructions for combinations, permutations, trees, and other finite structures \cite{nijenhuis1978}. A PDRS rank is one application of this established idea to a finite dependent schema. Its fixed-width identity length is
+\begin{equation}
+  L_{\mathrm{fixed}}=\lceil\log_2 N_S\rceil.
+\end{equation}
+This statement concerns identity within a known schema. It does not imply an optimal self-contained message or an optimal variable-length code under a nonuniform distribution.
+
+\subsection{Feat and SciFe}
+Feat defines efficiently computable bijections between initial intervals of natural numbers and algebraic values. Its enumeration algebra supports sums, products, guarded recursion, bijections, random access, memoization, and index-based parallel work \cite{feat2012}. SciFe provides dependent enumerators, exact cardinalities, inversion, memoized components, random testing through indices, and parallel enumeration over index ranges \cite{scife2015}. These systems establish the closest conceptual precedent.
+
+PDRS differs in interface and deployment. It accepts an external schema, emits a canonical language-neutral IR, executes the same semantics in three independent runtimes, binds ranks to schema identities, enforces resource limits, and exposes checkpointed campaign operations. These features constitute a systems bundle. They do not replace the embedded-language expressiveness of Feat or SciFe.
+
+\subsection{Knowledge compilation}
+Binary decision diagrams represent Boolean functions as reduced directed acyclic graphs and support equivalence, counting, and structured traversal \cite{bryant1986bdd}. Multivalued decision diagrams extend the representation to nonbinary variables. d-DNNF and related compiled forms support model counting and uniform witness generation after compilation. KUS combines knowledge compilation with uniform sampling of satisfying assignments \cite{kus2018}.
+
+A counted PDRS IR resembles a deterministic multivalued decision DAG. The artifact includes an exact reduced MDD baseline and an external BDD count for the valid rank interval. Knowledge compilation supports richer predicates than the present finite path-dependent language. PDRS instead favors predictable rank semantics, a small external IR, and straightforward independent runtimes.
+
+\subsection{Predicate and constrained generation}
+Korat explores bounded Java structures satisfying a user predicate \cite{korat2002}. TestEra maps specifications to SAT and converts satisfying assignments back to program states \cite{testera2004}. Luck combines generators with constraints and distribution annotations \cite{luck2017}. Testify synthesizes constrained random generators. These systems can express relations that require an expanded or impractical PDRS schema. Their solver or search overhead may be justified when compact declarative constraints matter more than direct rank arithmetic.
+
+\subsection{Property-based and grammar-based testing}
+QuickCheck established compositional generators and shrinking \cite{quickcheck2000}. SmallCheck and Lazy SmallCheck enumerate small values by depth \cite{smallcheck2008}. Hypothesis adds adaptive targeting, persistent examples, and sophisticated shrinking. Grammarinator generates and mutates grammar-derived inputs \cite{grammarinator2018}. Their central objective is effective failure discovery and counterexample reduction. PDRS provides stable complete-object identities and duplicate-free rank selection. A combined workflow can let a targeted method choose ranks while PDRS records and partitions them.
+
+\subsection{Covering arrays}
+NIST ACTS constructs compact test suites that cover all \(t\)-way factor interactions \cite{acts2010}. Covering arrays can reduce a very large finite domain to a small suite when the fault model assumes low-order interactions. PDRS serves a different requirement: exact complete-object indexing and campaign accounting. The two approaches can interoperate by mapping each ACTS row to its complete PDRS rank.
+
+\subsection{Representation and entropy coding}
+ASN.1 Packed Encoding Rules encode constrained values and choices with schema-derived bit widths \cite{x691}. Arithmetic coding approaches the entropy of a declared probability model over long blocks \cite{witten1987arithmetic}. Asymmetric numeral systems provide entropy coding with table-driven state transitions \cite{duda2013ans}. Generic tagged formats such as JSON and MessagePack carry field names or type framing and therefore solve a different interchange problem.
+
+The density experiment distinguishes fixed schema-relative identity, expected variable-length payload, and self-contained messages. This distinction prevents a fixed rank from being compared with an entropy coder whose model or schema is silently shared.
+
+\subsection{Mutation testing and reproducibility}
+Mutation testing evaluates whether a test suite detects deliberate program changes. Its interpretation requires care because equivalent mutants and build-invalid mutants can distort scores \cite{jia2011mutation}. The artifact uses curated semantic mutants with explicit witnesses. It also executes runtime-specific mutation harnesses and reports build outcomes separately. Reproducibility follows the principle that source, environment, data, and analysis must remain identifiable and executable \cite{sandve2013reproducible}.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=.96\linewidth]{../figures/fig02_prior_work_matrix.pdf}
+\caption{Capability matrix. Partial entries denote capabilities obtainable through a narrower interface or additional engineering. The matrix does not define a universal ranking.}
+\label{fig:prior}
+\end{figure}
