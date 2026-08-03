@@ -1,0 +1,12 @@
+\section{Representation Protocol}
+\subsection{Fixed and mixed-radix encodings}
+The PDRS fixed payload writes the rank in \(\lceil\log_2N\rceil\) bits, rounded to octets only at the transport boundary. The mixed-radix reference writes each active choice or range using its local ceiling width. It therefore spends unused bit patterns at each local field. The schema-specific reference uses the same branch-local layout with manually named records.
+
+\subsection{ASN.1 PER applicability}
+Each benchmark domain that maps directly to ASN.1 CHOICE, SEQUENCE, ENUMERATED, and constrained INTEGER types is compiled with actual unaligned and aligned PER codecs in CI. The workflow encodes and decodes deterministic edge-inclusive samples. Reported transport sizes are octet-rounded because the implementation returns byte strings. Unsupported source constructs would appear as unsupported cells.
+
+\subsection{Arithmetic and rANS models}
+For each distribution, the artifact computes entropy and adds declared termination or model overhead. Arithmetic coding uses two termination bits per block. The rANS estimate uses a 32-bit final state and a 12-bit frequency entry for each represented symbol, capped by the declared model table. These choices make short-block overhead explicit. They are not universal implementation constants.
+
+\subsection{Self-contained framing}
+The experimental message contains a one-byte canonicalization version, a 128-bit truncated schema hash, a rank-length varint, rank bytes, and an outer length prefix. CRC-32 adds 32 bits. HMAC-SHA-256 truncated to 128 bits adds 128 bits. The experiment measures corruption detection, not cryptographic deployment readiness.
