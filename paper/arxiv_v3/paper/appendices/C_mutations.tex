@@ -1,0 +1,26 @@
+\section{Mutation Operators}
+\begin{longtable}{p{.27\linewidth}p{.63\linewidth}}
+\toprule
+Operator & Required witness \\
+\midrule
+Cardinality sum to product & Unequal choice with three nonunit branches \\
+Omit child count & Last branch contributes positive cardinality \\
+Prefix off by one & Rank exactly at a branch boundary \\
+Reverse branch order & Rank zero selects the declared first branch \\
+Exclusive range stop & Upper endpoint must rank successfully \\
+Shift lower bound & Lower endpoint must produce zero local offset \\
+Reset rank accumulator & Later branch must retain its prefix \\
+Multiply rank offset & Range step uses child block exactly once \\
+Unrank uses non-strict boundary & Boundary belongs to the following branch \\
+Wrong boundary child & Second transition selects third branch \\
+Boolean accepted as integer & Typed integer field rejects Boolean \\
+Unicode normalization removed & Composed and decomposed strings hash identically \\
+Hash ignores branch order & Ordered branch reversal changes identity \\
+Overflow wraps & Cardinality beyond native bound is rejected \\
+Missing target accepted & Graph validation rejects unresolved edge \\
+Duplicate label accepted & Canonically duplicate branch is rejected \\
+Trailing token ignored & Terminal requires complete token consumption \\
+Unreachable node accepted & Strict source schema rejects unreachable content \\
+\bottomrule
+\end{longtable}
+Python applies all operators. Native C and Rust apply the cardinality, range, rank, boundary, and overflow subset because they consume already validated canonical IR. The raw reports preserve applicability and compile status.
