@@ -1,0 +1,37 @@
+\section{System Architecture}\label{sec:architecture}
+\subsection{External schema and canonical IR}
+A PDRS source schema declares a root and named terminal, choice, and integer-range nodes. The compiler validates the graph, rejects unreachable or cyclic content, computes reverse-topological cardinalities, builds choice prefix endpoints, and emits a canonical IR. The canonicalization version is part of the persistent identity. A change to normalization or typed equality therefore requires a new version even when the source syntax remains unchanged.
+
+The finite acyclic restriction is deliberate. It makes cardinality exact, prevents nontermination, and keeps independent runtimes small. Recursive algebraic structures can be represented only after an explicit finite bound or depth expansion. General cross-field predicates can require a large DAG. Solver-backed systems remain preferable when a compact predicate representation outweighs direct indexing.
+
+\subsection{Python, C, and Rust runtimes}
+The Python runtime parses and validates the source schema and supports arbitrary-precision cardinalities. The C11 and Rust 2021 runtimes consume canonical finite IR generated from validated source. They implement checked 64-bit counts, rank, unrank, and deterministic vector execution. This separation reduces parser duplication while preserving independent arithmetic implementations.
+
+The frozen evidence layer contains 389,754 exhaustive native round trips and 22,096 cross-language vectors with zero mismatches. These results establish conformance over the tested corpus. They do not prove the intended semantics because all implementations can share a mistaken specification. The independent recursive oracle and mutation tests address that risk from different directions.
+
+\subsection{Hashing and canonicalization}
+The schema hash covers canonical typed content, ordered choice branches, range bounds, field names, targets, and the canonicalization version. Reordered maps preserve the hash. Reordered choice branches change it because they change ranks. Duplicate JSON keys are rejected before hashing. NaN and infinite decimals are rejected. Unicode-equivalent labels normalize to the same value, which also lets the compiler reject canonically duplicate branches.
+
+\subsection{Resource controls}
+The compiler enforces maximum node count, active depth, range width, and cardinality bit length. Native arithmetic uses checked operations. Deep validation uses iterative graph traversal. Malformed-IR tests include cycles, missing targets, duplicate labels, empty domains, unreachable nodes, oversized counts, invalid UTF-8, duplicate source keys, ambiguous values, and excessive depth.
+
+\subsection{Campaign operations}
+A campaign can enumerate a rank interval, sample distinct ranks, assign ranks to workers, checkpoint completed ranks, and reconstruct failed records. Five allocation policies appear in the evaluation:
+\begin{enumerate}
+  \item contiguous intervals;
+  \item strided ranks;
+  \item deterministic hash assignment;
+  \item affine permutation followed by contiguous intervals; and
+  \item a centrally shuffled global list.
+\end{enumerate}
+Every coordinated policy can eliminate duplicate assignments. They differ in workload balance, coordination state, locality, replay cost, and failure recovery.
+
+\subsection{FinSpace layer}
+FinSpace compiles declarative finance records to PDRS and maps tokens back to typed records. It offers exact cardinality, rank, unrank, sampling, stratification, conditioned subspaces, partitioning, tabular output, and checkpointed execution. Adapters call QuantLib, SimpleFIX, and XML validators. FinSpace records target-library versions and does not treat the target application as part of PDRS semantics.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=.88\linewidth]{../figures/fig13_replay.pdf}
+\caption{Object replay reconstructs the structured record. Execution replay additionally verifies the software and data context.}
+\label{fig:replay}
+\end{figure}
