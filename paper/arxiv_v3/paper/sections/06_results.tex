@@ -1,0 +1,127 @@
+\section{Results}\label{sec:results}
+\subsection{RQ1: semantic preservation and implementation validation}
+The Phase 1--9 audit evaluated 150 generated schemas and 3,428 exhaustively checked objects with zero rank/unrank failures and zero lowering collisions. The Phase 10--18 exact-set extension compares 8,104 objects across the permit and imbalanced domains with an independent recursive oracle. PDRS sequence order, cardinality, and canonical record sets match the oracle. Reduced MDD counts match both domains.
+
+All 13 curated malformed documents are rejected. The \MalformedFuzz\ generated malformed documents also produce \MalformedFuzz\ rejections, with no crash or hang. All \CanonicalCases\ canonicalization cases pass. Boolean and integer values remain distinct, signed zeros normalize, NaN and infinity are rejected, Unicode-equivalent strings normalize, equivalent decimal and date forms agree, duplicate JSON keys are rejected, map ordering is stable, and ordered branch changes alter the schema hash.
+
+The Python curated mutation score is \PythonMutationScore\ percent across \PythonMutants\ mutants. The C score is \CMutationScore\ percent across \CMutants\ applicable mutants. The Rust CI harness reports \RustMutationScore\ percent across \RustMutants\ applicable mutants. All six held-out Python mutants are killed. These results strengthen the claim that the tests exercise cardinality, prefix arithmetic, inclusive ranges, rank accumulation, unrank boundaries, typed validation, canonicalization, schema hashing, overflow, missing targets, duplicate labels, trailing tokens, and unreachable nodes.
+
+Mutation scores have limits. Equivalent mutants can survive without revealing a weakness, while build-invalid changes do not constitute behavioral tests. The artifact therefore preserves every operator, witness, compile result, and runtime exit status instead of reporting one unexplained percentage.
+
+\subsection{RQ2: compilation and rank access}
+\Cref{fig:compile} shows compilation against represented contexts. Shared DAGs remain compact as root width grows because continuations are reused. Expanded trees grow with repeated structure. The reduced MDD performs additional hash-consing where equivalent continuations occur.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=.88\linewidth]{../figures/fig03_compilation_scalability.pdf}
+\caption{Compilation time across chain, shared-DAG, and expanded-tree families. Log axes emphasize structural scaling.}
+\label{fig:compile}
+\end{figure}
+
+\Cref{fig:rank} shows approximately linear growth with active path depth in the Python audit implementation. The frozen native evidence reports large C and Rust speedups over Python on its GitHub runner. Those ratios describe one compiler and hardware environment. The robust result is that rank and unrank visit one active path and do not enumerate preceding objects.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=.88\linewidth]{../figures/fig04_rank_unrank.pdf}
+\caption{Rank and unrank latency against active path depth. Absolute timings are runner-specific.}
+\label{fig:rank}
+\end{figure}
+
+\subsection{RQ3: representation size and knowledge compilation}
+\Cref{tab:density} reports mean payload bits. PDRS fixed identities use \PermitFixedBits, \FixFixedBits, \IsoFixedBits, and \QuantFixedBits\ bits for the first four domains. Enumerative coding and dense decision-diagram indexing use the same count-derived width. Mixed-radix, UPER, and schema-specific layouts use a few additional bits when conditional branches reserve local widths. APER adds octet alignment. Tagged MessagePack and JSON carry substantially more structural information.
+
+\input{generated_tables}
+
+The raw comparison can be misleading when the decoder does not already know the schema. A self-contained CRC-protected identity uses \PermitSelfCRC\ bits in the permit domain and \QuantSelfCRC\ bits in the option domain because it includes framing, version, a 128-bit schema identifier, and a checksum. The payload advantage remains real, but it is smaller than the raw \PermitFixedBits-versus-\PermitJsonBits\ comparison suggests.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=.96\linewidth]{../figures/fig05_representation_sizes.pdf}
+\caption{Payload sizes. The logarithmic axis shows why schema-relative identities and tagged interchange formats answer different questions.}
+\label{fig:density}
+\end{figure}
+
+Under a uniform model, ideal arithmetic coding approaches \(\log_2N\) only over sufficiently large blocks. At block size one, termination overhead makes it longer than the fixed rank. Under Zipf-like models, arithmetic coding becomes shorter because it exploits nonuniform probability. rANS also approaches the model entropy for long blocks, but the explicit frequency table dominates short blocks and large alphabets. PDRS supplies random access and stable identity; entropy coders optimize expected sequential payload under a shared model.
+
+The external ASN.1 workflow produces \ExternalASNRows\ codec-domain rows from direct CHOICE/SEQUENCE translations with an actual PER implementation and verifies every sampled round trip. The external BDD workflow produces \ExternalBDDRows\ domain rows, constructs the integer predicate \(0\le r<N\), counts its models, and records reduced node count. These baselines confirm two points. PER benefits from schema constraints but remains tied to an ASN.1 message definition. A decision diagram can count and index the same valid set, while representation size depends on variable order and constraint structure.
+
+\subsection{RQ4: sampling and defects}
+\Cref{fig:sampling} compares four objectives at budget 1,000. Object-uniform no-replacement sampling performs well when defects follow complete-object mass and duplicate avoidance matters. Branch-balanced selection improves rare-branch and branch-uniform access. Boundary bias leads on boundary-centered defects. Coverage guidance performs well on feature-aligned interaction defects.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=.96\linewidth]{../figures/fig06_sampling_objectives.pdf}
+\caption{Mean distinct defects under four seeded objectives. Each method receives the same attempt budget.}
+\label{fig:sampling}
+\end{figure}
+
+Across 96 paired bootstrap comparisons, one interval supports PDRS, 13 support a targeted comparator, and 82 include zero. PDRS outperforms boundary-biased sampling for pairwise-interaction defects at budget 1,000. Targeted methods lead in the supported boundary, rare-branch, branch-uniform, and historical-like comparisons. The evidence does not support universal defect-discovery superiority.
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=.98\linewidth]{../figures/fig07_defect_curves.pdf}
+\caption{Defect discovery across eight distributions. Shaded intervals use campaign-level standard errors for visual guidance; inferential claims use paired bootstrap intervals.}
+\label{fig:defects}
+\end{figure}
+
+The practical implication is compositional. PDRS can provide identities, no-replacement selection, and replay while a policy layer chooses object-uniform, branch-balanced, boundary-biased, covering-array, or adaptive ranks.
+
+\subsection{RQ5: distributed duplication and workload balance}
+Every coordinated policy assigns all 16,384 benchmark ranks exactly once. Zero overlap therefore does not distinguish PDRS intervals from striding, hashing, permutation, or a central shuffle. It distinguishes coordinated allocation from independent replacement sampling.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=.96\linewidth]{../figures/fig08_duplication_completion.pdf}
+\caption{All coordinated policies eliminate duplicate ranks. Maximum worker cost still differs.}
+\label{fig:distributed}
+\end{figure}
+
+Contiguous intervals produce an execution-cost coefficient of variation of 0.801 in the declared heterogeneous model. Striding reduces it to 0.091, hashing to 0.027, central shuffling to 0.013, and deterministic affine permutation to 0.0024. The permutation retains rank-only coordination and rank-addressed reconstruction while mixing adjacent structural regions. It does not provide cryptographic secrecy.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=.86\linewidth]{../figures/fig09_load_balance.pdf}
+\caption{Execution-cost imbalance under five disjoint policies. Equal rank counts do not imply equal work.}
+\label{fig:load}
+\end{figure}
+
+Contiguous allocation preserves locality and uses no additional coordination. Hash allocation balances structure but requires each rank to be assigned through the hash rule. Central shuffling requires \(O(N)\) global state. The appropriate method depends on cost heterogeneity, locality, recovery, and coordination constraints.
+
+\subsection{RQ6: financial software}
+The frozen SimpleFIX study executed 9,000 valid messages. The extension parsed one deterministic profile from each of four message families and applied 24 malformed-message probes. The parser returned a message in 16 cases, returned no message in four, and raised an exception in four. These observations characterize parser behavior. SimpleFIX does not implement a complete FIX session engine, and parser acceptance alone does not establish protocol conformance.
+
+The QuantLib extension declared 12 boundary cases. Ten completed. The CRR binomial engine raised \texttt{RuntimeError: negative probability} for call and put cases at volatility \(10^{-6}\). The analytic and independent formula checks did not produce a reported failure. We classify this result as a reproducible numerical-engine boundary observation, not a confirmed defect.
+
+Both ISO validators accepted the two valid documents, agreed on every mutation outcome, and jointly rejected 10 of 12 probes. Both accepted an amount with three fractional digits. The evaluated XSD facets permitted that value, so the probe was misclassified as invalid before execution. The correction illustrates why dual implementations that share one schema remain dependent on the same specification.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=.98\linewidth]{../figures/fig12_real_programs.pdf}
+\caption{Extended real-program outcomes. Bars report cases, not confirmed defects.}
+\label{fig:real}
+\end{figure}
+
+The real-program evidence establishes integration, deterministic case identity, boundary execution, and mutation behavior. It does not establish broad coverage of FIX sessions, all QuantLib instruments, or the ISO 20022 catalogue.
+
+\subsection{RQ7: integrity, evolution, and replay}
+The frozen fault experiment found a median valid-corruption fraction of \FrozenRankCorruption\ percent. The new five-schema experiment finds \RawRankCorruption\ percent. A single flipped rank bit therefore usually produces another in-range object. This is a direct consequence of dense use of the available code space.
+
+CRC-32 and the 128-bit HMAC detect every tested single-bit, two-bit, burst, and truncation corruption. Random byte replacement can occasionally replace a byte with itself, which explains detection fractions slightly below one in that generated category. The MAC additionally authenticates the message under the experimental key. Neither result makes the research message format a deployment standard.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=.9\linewidth]{../figures/fig11_integrity.pdf}
+\caption{Mean detection rates over five schemas. Raw framed identities detect corruption only when framing becomes invalid.}
+\label{fig:integrity}
+\end{figure}
+
+Schema evolution is order-sensitive. Appending a root branch leaves all existing ranks unchanged. Inserting the same branch first moves every existing rank. Reversing root order also moves every rank. Expanding an early branch moves 98 percent of common objects, while expanding the last branch moves 4.5 percent. Removing the last branch leaves retained ranks unchanged.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=.9\linewidth]{../figures/fig10_schema_evolution.pdf}
+\caption{Rank churn among objects common to the old and new schemas.}
+\label{fig:evolution}
+\end{figure}
+
+The replay ledger reconstructs the object when canonicalization version, schema hash, and rank match. It reports explicit mismatches for changed adapter, environment, oracle, and data snapshot. \Cref{tab:replay} records the tested outcomes. This behavior supports the narrower phrase \emph{exact object reconstruction}. The phrase \emph{exact execution replay} requires a matching environment, oracle, parameters, and data snapshot.
