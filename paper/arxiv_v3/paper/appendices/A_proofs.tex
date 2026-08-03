@@ -1,0 +1,13 @@
+\section{Extended Proof Details}
+\subsection{Choice intervals}
+For choice node \(Q\), define \(P_0=0\) and \(P_i=\sum_{j<i}C(v_j)\). Positivity of child counts gives strictly increasing endpoints
+\(0=P_0<P_1<\cdots<P_k=C(Q)\). Therefore each \(q\in[0,C(Q))\) lies in exactly one interval \([P_i,P_{i+1})\). Unrank selects that interval and applies the child unrank to \(q-P_i\). Rank restores \(P_i\). The reverse direction follows identically from the child inverse.
+
+\subsection{Range intervals}
+For \(G[a,b,v]\), let \(c=C(v)\). The domain size is \((b-a+1)c\). Every rank \(q\) has a unique quotient and remainder under division by \(c\): \(q=dc+q'\), with \(0\le d\le b-a\) and \(0\le q'<c\). Unrank emits \(a+d\) and the child object. Rank recomputes \(dc+q'\).
+
+\subsection{DAG sharing}
+The proof is by denotation, not by tree identity. A shared child node has one denotation and one count. Each incoming edge adds its own prefix or range offset before entering the child. Shared continuation therefore preserves the inverse identities. Memoized counts change evaluation cost but not semantics.
+
+\subsection{Injective lowering}
+Path-wise field uniqueness ensures that lowering never overwrites a field. Typed canonical values ensure that distinct token types remain distinct. Unique normalized labels ensure that two choice edges cannot emit the same canonical value at one field. Under these conditions, the first differing token on two paths creates a differing field value in the lowered records. Lowering is injective.
