@@ -1,0 +1,201 @@
+   reachable: set[str] = set()
+        stack = [self.root]
+        while stack:
+            name = stack.pop()
+            if name in reachable:
+                continue
+            reachable.add(name)
+            stack.extend(self.targets(self.nodes[name]))
+        if set(self.nodes) != reachable:
+            raise SchemaError("unreachable nodes")
+        indegree = {name: 0 for name in reachable}
+        for name in reachable:
+            for target in self.targets(self.nodes[name]):
+                indegree[target] += 1
+        queue = deque(sorted(name for name, degree in indegree.items() if degree == 0))
+        order: list[str] = []
+        while queue:
+            name = queue.popleft()
+            order.append(name)
+            for target in self.targets(self.nodes[name]):
+                indegree[target] -= 1
+                if indegree[target] == 0:
+                    queue.append(target)
+        if len(order) != len(reachable):
+            raise SchemaError("cycle detected")
+        self._postorder = list(reversed(order))
+
+    def _validate_path_fields(self) -> None:
+        stack: list[tuple[str, frozenset[str]]] = [(self.root, frozenset())]
+        seen: set[tuple[str, frozenset[str]]] = set()
+        while stack:
+            name, fields = stack.pop()
+            state = (name, fields)
+            if state in seen:
+                continue
+            seen.add(state)
+            node = self.nodes[name]
+            if isinstance(node, Terminal):
+                continue
+            if node.field in fields:
+                raise SchemaError("field repeats on one path")
+            next_fields = frozenset(set(fields) | {node.field})
+            stack.extend((target, next_fields) for target in self.targets(node))
+
+    def _compile(self) -> None:
+        for name in self._postorder:
+            node = self.nodes[name]
+            if isinstance(node, Terminal):
+                count, depth = 1, 0
+            elif isinstance(node, Choice):
+                count = sum(self._counts[b.target] for b in node.branches)
+                depth = 1 + max(self._depths[b.target] for b in node.branches)
+            else:
+                count = (node.stop - node.start + 1) * self._counts[node.target]
+                depth = 1 + self._depths[node.target]
+            if count.bit_length() > self.limits.max_domain_bits:
+                raise SchemaError("domain bit limit exceeded")
+            if depth > self.limits.max_depth:
+                raise SchemaError("depth limit exceeded")
+            self._counts[name], self._depths[name] = count, depth
+        for name, node in self.nodes.items():
+            if not isinstance(node, Choice):
+                continue
+            offset = 0
+            ends: list[int] = []
+            lookup: dict[str, tuple[str, int]] = {}
+            for branch in node.branches:
+                lookup[branch.value] = (branch.target, offset)
+                offset += self._counts[branch.target]
+                ends.append(offset)
+            self._choice_lookup[name] = lookup
+            self._choice_ends[name] = tuple(ends)
+
+    @property
+    def count(self) -> int:
+        return self._counts[self.root]
+
+    @property
+    def bit_length(self) -> int:
+        return max(0, (self.count - 1).bit_length())
+
+    @property
+    def depth(self) -> int:
+        return self._depths[self.root]
+
+    @property
+    def canonical_hash(self) -> str:
+        return hashlib.sha256(canonical_json(self.document)).hexdigest()
+
+    def rank(self, tokens: Sequence[Token]) -> int:
+        data = list(tokens)
+        position = 0
+        name = self.root
+        rank = 0
+        while True:
+            node = self.nodes[name]
+            if isinstance(node, Terminal):
+                if position != len(data):
+                    raise SchemaError("trailing tokens")
+                return rank
+            if position >= len(data):
+                raise SchemaError("early token termination")
+            token = data[position]
+            position += 1
+            if isinstance(node, Choice):
+                if not isinstance(token, str):
+                    raise SchemaError("choice token must be string")
+                selected = self._choice_lookup[name].get(nfc(token))
+                if selected is None:
+                    raise SchemaError("invalid choice")
+                name, offset = selected
+                rank += offset
+            else:
+                if not isinstance(token, int) or isinstance(token, bool):
+                    raise SchemaError("range token must be integer")
+                if token < node.start or token > node.stop:
+                    raise SchemaError("out of range")
+                rank += (token - node.start) * self._counts[node.target]
+                name = node.target
+
+    def unrank(self, index: int) -> list[Token]:
+        if not isinstance(index, int) or isinstance(index, bool) or index < 0 or index >= self.count:
+            raise SchemaError("invalid rank")
+        output: list[Token] = []
+        name = self.root
+        remainder = index
+        while True:
+            node = self.nodes[name]
+            if isinstance(node, Terminal):
+                if remainder:
+                    raise AssertionError("terminal remainder")
+                return output
+            if isinstance(node, Choice):
+                branch_index = bisect_right(self._choice_ends[name], remainder)
+                previous = 0 if branch_index == 0 else self._choice_ends[name][branch_index - 1]
+                remainder -= previous
+                branch = node.branches[branch_index]
+                output.append(branch.value)
+                name = branch.target
+            else:
+                block = self._counts[node.target]
+                offset, remainder = divmod(remainder, block)
+                output.append(node.start + offset)
+                name = node.target
+
+    def lower(self, tokens: Sequence[Token]) -> dict[str, Any]:
+        data = list(tokens)
+        position = 0
+        name = self.root
+        output: dict[str, Any] = {}
+        while True:
+            node = self.nodes[name]
+            if isinstance(node, Terminal):
+                if position != len(data):
+                    raise SchemaError("trailing tokens")
+                return output
+            token = data[position]
+            position += 1
+            if isinstance(node, Choice):
+                token = nfc(str(token))
+                selected = self._choice_lookup[name].get(token)
+                if selected is None:
+                    raise SchemaError("invalid choice")
+                output[node.field] = token
+                name = selected[0]
+            else:
+                if not isinstance(token, int) or isinstance(token, bool):
+                    raise SchemaError("integer required")
+                output[node.field] = token
+                name = node.target
+
+    def enumerate(self) -> Iterator[list[Token]]:
+        for rank in range(self.count):
+            yield self.unrank(rank)
+
+    def root_intervals(self) -> list[tuple[str, int, int]]:
+        node = self.nodes[self.root]
+        if not isinstance(node, Choice):
+            return [("root", 0, self.count)]
+        result = []
+        offset = 0
+        for branch in node.branches:
+            stop = offset + self._counts[branch.target]
+            result.append((branch.value, offset, stop))
+            offset = stop
+        return result
+
+
+def naive_enumerate(document: Mapping[str, Any]) -> list[list[Token]]:
+    nodes = document["nodes"]
+    def walk(name: str) -> list[list[Token]]:
+        node = nodes[name]
+        if node["type"] == "terminal":
+            return [[]]
+        output: list[list[Token]] = []
+        if node["type"] == "choice":
+            for branch in node["branches"]:
+                output.extend([[nfc(branch["value"]), *tail] for tail in walk(branch["target"])])
+        else:
+            for value in range(node["start"], node["stop"] + 1):
+       
