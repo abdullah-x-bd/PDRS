@@ -1,0 +1,35 @@
+\section{Introduction}
+Software tests, protocol messages, compiler inputs, administrative records, and financial scenarios often form finite domains with dependencies among fields. A market order omits price, a limit order requires it, a message family determines which fields follow, and an instrument class restricts its pricing parameters. Cartesian generation produces invalid combinations. Independent random workers can repeat expensive cases. Ad hoc serializers can reconstruct values while providing no exact completion ledger. These concerns motivate a representation that assigns one stable integer to every valid object in a declared finite schema.
+
+Let \(S\) denote a finite dependent schema, let \(\D_S\) denote its structured domain, and let \(N_S=|\D_S|\). PDRS compiles \(S\) into mutually inverse operations
+\begin{equation}
+  \rank_S : \D_S \longleftrightarrow [0,N_S) : \unrank_S.
+\end{equation}
+The integer interval supports random access, uniform sampling through uniform ranks, sampling without replacement, deterministic partitioning, compact schema-relative identities, and exact completion accounting. Cover's enumerative source coding, combinatorial ranking, Feat, and SciFe already establish the central counting-and-indexing idea \cite{cover1973,nijenhuis1978,feat2012,scife2015}. PDRS therefore claims a systems contribution rather than priority over that mathematical foundation.
+
+\subsection{Systems gap}
+Existing enumerator libraries usually embed the domain description inside one host language. Knowledge-compilation systems support broader constraints, but their input languages, compiled forms, and indexing interfaces vary. Property-based testing systems optimize generation and shrinking rather than persistent complete-object identities. Covering arrays minimize interaction suites. PDRS addresses a narrower operational gap: one external finite-domain schema, one canonical intermediate representation, independent runtimes, and campaign primitives that preserve object identity across workers and applications.
+
+The distinction matters in long-running campaigns. A worker can report a schema hash and rank instead of a large record. A coordinator can assign disjoint rank sets without a shared deduplication database. A failed case can be reconstructed from its object identity. These properties remain useful even when another generator selects the ranks. PDRS can therefore serve as an identity and orchestration layer under branch-balanced, boundary-biased, interaction-covering, or adaptive selection policies.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=.88\linewidth]{../figures/fig01_architecture.pdf}
+\caption{PDRS separates the external schema, canonical representation, language runtimes, rank operations, and application layer.}
+\label{fig:architecture}
+\end{figure}
+
+\subsection{Contributions}
+The paper separates established foundations from new engineering and evidence.
+\begin{enumerate}
+  \item \textbf{Formal clarification.} We define typed canonical values, precise schema well-formedness, token semantics, injective record lowering, bit complexity, sampling without replacement, and separate object and execution replay identities.
+  \item \textbf{Language-neutral implementation.} PDRS exposes a canonical finite choice/range/terminal IR through independent Python, C11, and Rust 2021 runtimes with resource limits, schema hashes, rank, unrank, sampling, and work allocation.
+  \item \textbf{Comparative evidence.} The artifact combines the original six-system corpus with a reduced multivalued decision diagram, actual ASN.1 PER verification where supported, declared-distribution entropy baselines, malformed-IR fuzzing, canonicalization tests, and cross-language curated mutation testing.
+  \item \textbf{Operational evaluation.} We compare five generation policies over eight defect distributions and five coordinated allocation policies under heterogeneous costs. We report objective-specific outcomes instead of an aggregate win/loss score.
+  \item \textbf{Application and replay layer.} FinSpace applies rank-addressed domains to quantitative finance, FIX, and ISO 20022. Its replay ledger binds canonicalization, schema identity, rank, adapter, environment, oracle, data, and execution parameters.
+\end{enumerate}
+
+\subsection{Direct nonclaims}
+PDRS does not automatically provide branch-balanced generation. Object-uniform sampling is not universally optimal for defect discovery. Contiguous intervals do not guarantee balanced execution cost. A raw rank is not an integrity-protected identifier. Arbitrary schema edits do not preserve ranks. Cross-language agreement does not independently prove semantic correctness. The real-program experiments did not discover a previously unknown defect. FinSpace does not accelerate QuantLib pricing kernels. Native implementations currently restrict cardinalities to unsigned 64-bit ranges. Exact object reconstruction does not guarantee execution-result reproduction.
+
+The rest of the paper develops these claims in a research-question structure. \Cref{sec:prior} situates the work. \Cref{sec:formal} defines the model. \Cref{sec:architecture} describes the system. \Cref{sec:method} states the research questions and experimental design. \Cref{sec:results} reports the evidence. \Cref{sec:finspace} presents FinSpace. \Cref{sec:limitations} states the limitations directly.
