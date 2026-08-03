@@ -1,0 +1,16 @@
+{
+  "artifact": "PDRS arXiv v3 phases 10-18",
+  "canonical_project_name": "Path-Dependent Radix Spaces",
+  "base_pdrs_commit": "b5315f0c94f93ddb0940518087a1b64eba1a462b",
+  "base_finspace_commit": "a8acde3bd4aca8a269a0a6909100568f856dabfb",
+  "published_packages": {
+    "pdrs": "0.2.0",
+    "finspace": "0.1.0"
+  },
+  "canonicalization_version": "2",
+  "seed": 20260804,
+  "one_command_reproduction": "make reproduce-full",
+  "doi": null,
+  "doi_status": "pending actual Zenodo minting after immutable release",
+  "claim_boundary": "No DOI, historical defect, package release, or execution reproduction is claimed unless the corresponding external evidence exists."
+}
