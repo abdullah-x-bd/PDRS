@@ -1,0 +1,157 @@
+e": True,
+    }
+    write_json(PROCESSED / "density_summary.json", summary)
+    return summary
+
+
+def corruptions(payload: bytes, rng: random.Random) -> Iterable[tuple[str, bytes]]:
+    total_bits = len(payload) * 8
+    for _ in range(min(64, total_bits)):
+        bit = rng.randrange(total_bits)
+        changed = bytearray(payload); changed[bit // 8] ^= 1 << (bit % 8)
+        yield "single_bit", bytes(changed)
+    for _ in range(32):
+        bits = rng.sample(range(total_bits), 2)
+        changed = bytearray(payload)
+        for bit in bits:
+            changed[bit // 8] ^= 1 << (bit % 8)
+        yield "two_bit", bytes(changed)
+    for _ in range(32):
+        start = rng.randrange(len(payload))
+        width = rng.randint(1, min(4, len(payload) - start))
+        changed = bytearray(payload)
+        for index in range(start, start + width):
+            changed[index] ^= rng.randrange(1, 256)
+        yield "burst", bytes(changed)
+    for _ in range(32):
+        index = rng.randrange(len(payload)); changed = bytearray(payload); changed[index] = rng.randrange(256)
+        yield "byte_replace", bytes(changed)
+    if len(payload) > 1:
+        yield "truncation", payload[:-1]
+
+
+def integrity_experiment(schemas: dict[str, CompiledSchema]) -> dict[str, Any]:
+    rows: list[dict[str, Any]] = []
+    rank_rows: list[dict[str, Any]] = []
+    rng = random.Random(SEED)
+    for schema_index, (name, schema) in enumerate(schemas.items()):
+        ranks = sample_ranks(schema, 300, SEED + 100 + schema_index)
+        valid_raw = 0; flips = 0
+        for rank in ranks:
+            for bit in range(schema.bit_length):
+                flips += 1
+                altered = rank ^ (1 << bit)
+                if altered < schema.count:
+                    valid_raw += 1
+        rank_rows.append({
+            "schema": name, "ranks": len(ranks), "single_bit_rank_flips": flips,
+            "valid_rank_corruptions": valid_raw,
+            "valid_corruption_fraction": valid_raw / flips if flips else 0,
+        })
+        for integrity in ["none", "crc32", "mac16"]:
+            counts = Counter(); detected = Counter()
+            for rank in ranks[:80]:
+                payload = self_contained_message(schema, rank, integrity)
+                assert verify_message(payload, integrity)
+                for mode, corrupted in corruptions(payload, rng):
+                    counts[mode] += 1
+                    if not verify_message(corrupted, integrity):
+                        detected[mode] += 1
+            for mode in counts:
+                rows.append({
+                    "schema": name, "integrity": integrity, "corruption": mode,
+                    "trials": counts[mode], "detected": detected[mode],
+                    "detection_fraction": detected[mode] / counts[mode],
+                })
+    write_csv(RAW / "integrity_faults.csv", rows)
+    write_csv(RAW / "raw_rank_faults.csv", rank_rows)
+    summary = {
+        "median_valid_raw_rank_corruption": statistics.median(row["valid_corruption_fraction"] for row in rank_rows),
+        "frozen_v1_median_valid_corruption": 0.9279487179487179,
+        "crc_single_bit_detection_min": min(row["detection_fraction"] for row in rows if row["integrity"] == "crc32" and row["corruption"] == "single_bit"),
+        "mac_single_bit_detection_min": min(row["detection_fraction"] for row in rows if row["integrity"] == "mac16" and row["corruption"] == "single_bit"),
+        "claim": "Dense ranks provide neither error detection nor authenticity by themselves.",
+    }
+    write_json(PROCESSED / "integrity_summary.json", summary)
+    return summary
+
+
+def malformed_documents() -> list[tuple[str, Any]]:
+    return [
+        ("cycle", {"root": "a", "nodes": {"a": {"type": "range", "start": 0, "stop": 1, "target": "a"}}}),
+        ("missing_target", {"root": "a", "nodes": {"a": {"type": "range", "start": 0, "stop": 1, "target": "x"}}}),
+        ("duplicate_label", {"root": "a", "nodes": {"a": {"type": "choice", "branches": [{"value": "x", "target": "e"}, {"value": "x", "target": "e"}]}, "e": {"type": "terminal"}}}),
+        ("unicode_duplicate", {"root": "a", "nodes": {"a": {"type": "choice", "branches": [{"value": "é", "target": "e"}, {"value": "e\u0301", "target": "e"}]}, "e": {"type": "terminal"}}}),
+        ("empty_choice", {"root": "a", "nodes": {"a": {"type": "choice", "branches": []}}}),
+        ("empty_range", {"root": "a", "nodes": {"a": {"type": "range", "start": 2, "stop": 1, "target": "e"}, "e": {"type": "terminal"}}}),
+        ("unreachable", {"root": "e", "nodes": {"e": {"type": "terminal"}, "x": {"type": "terminal"}}}),
+        ("boolean_bound", {"root": "a", "nodes": {"a": {"type": "range", "start": False, "stop": 1, "target": "e"}, "e": {"type": "terminal"}}}),
+        ("missing_nodes", {"root": "a"}),
+        ("bad_node", {"root": "a", "nodes": {"a": {"type": "unknown"}}}),
+        ("missing_root", {"nodes": {"e": {"type": "terminal"}}}),
+        ("repeated_field", {"root": "a", "nodes": {"a": {"type": "range", "field": "x", "start": 0, "stop": 1, "target": "b"}, "b": {"type": "range", "field": "x", "start": 0, "stop": 1, "target": "e"}, "e": {"type": "terminal"}}}),
+        ("range_limit", {"root": "a", "nodes": {"a": {"type": "range", "start": 0, "stop": 10**6, "target": "e"}, "e": {"type": "terminal"}}}),
+    ]
+
+
+def random_malformed(rng: random.Random, index: int) -> dict[str, Any]:
+    base = copy.deepcopy(benchmark_schemas()["permit"])
+    choice = rng.randrange(8)
+    if choice == 0:
+        base["nodes"]["type"]["branches"][0]["target"] = "missing"
+    elif choice == 1:
+        base["nodes"]["type"]["branches"].append(copy.deepcopy(base["nodes"]["type"]["branches"][0]))
+    elif choice == 2:
+        base["nodes"]["type"]["branches"] = []
+    elif choice == 3:
+        base["nodes"]["std_zone"]["stop"] = 0
+    elif choice == 4:
+        base["nodes"][f"unreachable_{index}"] = {"type": "terminal"}
+    elif choice == 5:
+        base["nodes"]["std_zone"]["target"] = "type"
+    elif choice == 6:
+        base["nodes"]["std_zone"]["start"] = False
+    else:
+        base["root"] = "missing"
+    return base
+
+
+def canonicalization_experiment() -> dict[str, Any]:
+    rows: list[dict[str, Any]] = []
+    cases: list[tuple[str, Callable[[], Any], str]] = [
+        ("bool_vs_int", lambda: canonical_json(True) != canonical_json(1), "distinct"),
+        ("signed_zero", lambda: canonical_decimal("-0.0") == canonical_decimal("0"), "same"),
+        ("nan_rejected", lambda: _raises(lambda: canonicalize(float("nan"))), "reject"),
+        ("unicode_nfc", lambda: canonical_json("é") == canonical_json("e\u0301"), "same"),
+        ("decimal_normalization", lambda: canonical_decimal("1.00") == canonical_decimal("1e0"), "same"),
+        ("date_equivalence", lambda: canonical_date("2026-08-04") == canonical_date(__import__("datetime").date(2026,8,4)), "same"),
+        ("duplicate_json_keys", lambda: _raises(lambda: reject_duplicate_json('{"a":1,"a":2}')), "reject"),
+        ("reordered_mapping", lambda: canonical_json({"b":2,"a":1}) == canonical_json({"a":1,"b":2}), "same"),
+        ("branch_order_hash", lambda: _branch_order_differs(), "different"),
+        ("infinity_rejected", lambda: _raises(lambda: canonicalize(float("inf"))), "reject"),
+    ]
+    for name, fn, expected in cases:
+        success = bool(fn())
+        rows.append({"case": name, "expected": expected, "passed": success})
+        if not success:
+            raise AssertionError(name)
+    write_csv(RAW / "canonicalization_matrix.csv", rows)
+    return {"cases": len(rows), "passed": sum(row["passed"] for row in rows)}
+
+
+def _raises(fn: Callable[[], Any]) -> bool:
+    try:
+        fn()
+    except Exception:
+        return True
+    return False
+
+
+def _branch_order_differs() -> bool:
+    left = benchmark_schemas()["permit"]
+    right = copy.deepcopy(left)
+    right["nodes"]["type"]["branches"].reverse()
+    return CompiledSchema(left).canonical_hash != CompiledSchema(right).canonical_hash
+
+
+MUTANTS = 
