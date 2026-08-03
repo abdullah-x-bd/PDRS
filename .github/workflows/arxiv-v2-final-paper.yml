@@ -1,0 +1,78 @@
+name: arXiv v2 final evidence-bound paper
+
+on:
+  pull_request:
+    paths:
+      - "paper/arxiv_v2/paper/**"
+      - "paper/arxiv_v2/results/processed/verified_ci_results.json"
+      - ".github/workflows/arxiv-v2-final-paper.yml"
+  push:
+    branches: ["agent/arxiv-v2-phases-1-9"]
+    paths:
+      - "paper/arxiv_v2/paper/**"
+      - "paper/arxiv_v2/results/processed/verified_ci_results.json"
+      - ".github/workflows/arxiv-v2-final-paper.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  final-paper:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12.13"
+          cache: pip
+          cache-dependency-path: paper/arxiv_v2/requirements-lock.txt
+      - name: Install pinned analysis environment
+        run: python -m pip install -r paper/arxiv_v2/requirements-lock.txt
+      - name: Regenerate evidence-backed figures
+        run: python paper/arxiv_v2/experiments/run_phase1_9.py
+      - name: Apply verified CI results to manuscript
+        run: python paper/arxiv_v2/paper/apply_verified_results.py
+      - name: Install TeX and PDF inspection tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            texlive-latex-base texlive-latex-extra texlive-fonts-recommended \
+            lmodern poppler-utils
+      - name: Compile final manuscript
+        working-directory: paper/arxiv_v2/paper
+        run: |
+          pdflatex -jobname=main-final -interaction=nonstopmode -halt-on-error main_verified.tex
+          bibtex main-final
+          pdflatex -jobname=main-final -interaction=nonstopmode -halt-on-error main_verified.tex
+          pdflatex -jobname=main-final -interaction=nonstopmode -halt-on-error main_verified.tex
+          ! grep -q "Overfull \\hbox" main-final.log
+          pdfinfo main-final.pdf | tee final-paper-metadata.txt
+          pdftotext main-final.pdf final-paper.txt
+          grep -q "3,428 exhaustively enumerated objects" final-paper.txt
+          grep -q "13 support a targeted comparator" final-paper.txt
+          grep -q "negative probability" final-paper.txt
+      - name: Assemble arXiv source directory
+        run: |
+          mkdir -p /tmp/pdrs-arxiv-v2-final
+          cp paper/arxiv_v2/paper/main_verified.tex /tmp/pdrs-arxiv-v2-final/main.tex
+          cp paper/arxiv_v2/paper/references.bib /tmp/pdrs-arxiv-v2-final/
+          cp paper/arxiv_v2/figures/*.pdf /tmp/pdrs-arxiv-v2-final/
+          cp paper/arxiv_v2/arxiv_metadata.txt /tmp/pdrs-arxiv-v2-final/
+          cp paper/arxiv_v2/README_FOR_ARXIV.md /tmp/pdrs-arxiv-v2-final/
+          cp paper/arxiv_v2/results/processed/verified_ci_results.json /tmp/pdrs-arxiv-v2-final/
+          (cd /tmp && zip -qr pdrs-arxiv-v2-final-source.zip pdrs-arxiv-v2-final)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pdrs-arxiv-v2-final
+          retention-days: 90
+          path: |
+            paper/arxiv_v2/paper/main-final.pdf
+            paper/arxiv_v2/paper/main_verified.tex
+            paper/arxiv_v2/paper/references.bib
+            paper/arxiv_v2/paper/final-paper-metadata.txt
+            paper/arxiv_v2/paper/final-paper.txt
+            paper/arxiv_v2/figures
+            paper/arxiv_v2/results/processed/verified_ci_results.json
+            /tmp/pdrs-arxiv-v2-final-source.zip
