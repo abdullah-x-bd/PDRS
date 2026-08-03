@@ -1,0 +1,20 @@
+TITLE
+PDRS: A Cross-Language Compiler for Rank-Addressable Finite Structured Domains
+
+AUTHORS
+Abdullah X
+
+PRIMARY CATEGORY
+cs.SE
+
+SUGGESTED CROSS-LISTS
+cs.PL; q-fin.CP
+
+ABSTRACT
+Finite structured test domains often support exact counting and indexed enumeration, yet practical systems rarely expose these properties through a language-neutral interface suitable for reproducible distributed campaigns. We present Path-Dependent Radix Spaces (PDRS), a compiler and runtime framework that translates finite acyclic dependent schemas into a canonical intermediate representation with exact cardinality, rank, and unrank operations. The underlying construction follows established indexed-enumeration and enumerative-coding principles. PDRS contributes an external schema, independently implemented Python, C, and Rust runtimes, schema-relative object identities, deterministic work allocation, explicit resource controls, and reproducible campaign tooling. We evaluate semantic correctness, canonicalization, compilation cost, runtime scalability, representation size, sampling behavior, distributed execution, mutation resistance, integrity, schema evolution, and replay semantics. PDRS provides exact object indexing and duplicate-free coordinated assignment, while targeted generators perform better under several nonuniform defect objectives and contiguous intervals can produce severe workload imbalance. FinSpace demonstrates FIX, option-pricing, ISO 20022, checkpointing, and versioned replay workflows. Exact object reconstruction requires a fixed schema and canonicalization; execution-result reproduction additionally requires adapters, environments, oracles, parameters, and external-data snapshots.
+
+COMMENTS
+Phase 10–18 revision with reproducible evidence, thirteen figures, mutation testing, actual ASN.1 PER checks, an external BDD count, integrity experiments, and object-versus-execution replay semantics.
+
+DOI
+Leave blank until Zenodo mints an actual DOI for an immutable release.
